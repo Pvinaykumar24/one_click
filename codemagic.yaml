@@ -9,16 +9,17 @@ workflows:
       cocoapods: default
     working_directory: one_click_app
     scripts:
-      - name: Fetch Flutter dependencies
+      - name: Disable experimental SPM & fetch Flutter dependencies
         script: |
+          flutter config --no-enable-swift-package-manager
           flutter pub get
       - name: Build iOS Simulator Bundle (For free cloud web preview via Appetize.io)
         script: |
-          flutter build ios --simulator
+          flutter build ios --simulator --no-enable-swift-package-manager
           cd build/ios/iphonesimulator && zip -r OneClick_iOS_Simulator.zip Runner.app
       - name: Build Unsigned iOS IPA (For free physical iPhone sideloading via Sideloadly/AltStore)
         script: |
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign --no-enable-swift-package-manager
           cd build/ios/iphoneos
           mkdir -p Payload
           cp -R Runner.app Payload/
