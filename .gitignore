@@ -1,0 +1,106 @@
+# ==========================================
+# Flutter / Dart / Pub
+# ==========================================
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/doc/api/
+**/coverage/
+*.apk
+*.aab
+*.ipa
+*.deb
+*.exe
+*.dmg
+*.app
+app.*.symbols
+app.*.map.json
+
+# ==========================================
+# Android
+# ==========================================
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/**/build/
+**/android/**/.gradle/
+**/android/**/local.properties
+*.keystore
+*.jks
+*.jks.*
+**/android/*.txt
+
+# ==========================================
+# iOS / macOS
+# ==========================================
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework/
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_export_environment.sh
+**/*.xcuserdatad/
+**/*.xcworkspace/xcuserdata/
+*.xccheckout
+*.moved-aside
+*.derivedData
+
+# ==========================================
+# Node.js / Firebase / Web
+# ==========================================
+**/node_modules/
+npm-debug.log
+yarn-error.log
+firebase-debug.log
+**/.env
+**/.env.local
+*serviceAccount*.json
+serviceAccountKey.json
+
+# ==========================================
+# IDEs & Editor Files
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+.atom/
+.build/
+.swiftpm/
+
+# ==========================================
+# AI Agents & Local Caching
+# ==========================================
+.claude/
+.gemini/
+
+# ==========================================
+# Operating System & Miscellaneous
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.log
+*.pyc
+*.class
+*.zip
+*.tar.gz
+*.rar

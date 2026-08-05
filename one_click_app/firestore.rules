@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper: Check if user has admin custom claim
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // Helper: Check if request is from the owner of the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper: Get user's profile document data from Firestore
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper: Check if authenticated user belongs to the target collegeId
+    // Checks token custom claim first, then user profile fields, falling back to 'iiitdm' for legacy profiles
+    function isMemberOfCollege(collegeId) {
+      return isAuthenticated() && (
+        ('collegeId' in request.auth.token && request.auth.token.collegeId == collegeId) ||
+        (getUserData().collegeId == collegeId) ||
+        (getUserData().college == collegeId) ||
+        (collegeId == 'iiitdm' && !('collegeId' in getUserData()) && !('college' in getUserData()))
+      );
+    }
+
+    // Match users collection
+    match /users/{userId} {
+      // Allow read/create/update if owner or admin
+      allow read, create, update: if isOwner(userId) || isAdmin();
+      // Deleting a user profile (destructive) is admin-only
+      allow delete: if isAdmin();
+      
+      // Match all user subcollections recursively (finances, cgpa, attendance, timetable, notifications, assignments)
+      match /{subcollection}/{document=**} {
+        // Users can manage (including delete) their own subcollection entries
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Match institutions collection and all nested subcollections (messMenu, events, etc.)
+    match /institutions/{collegeId} {
+      // Enforce that reads only return documents matching the user's own collegeId
+      allow read: if isMemberOfCollege(collegeId);
+      // Enforce that writes require both the admin claim AND a matching collegeId
+      allow write: if isAdmin() && isMemberOfCollege(collegeId);
+
+      match /{document=**} {
+        allow read: if isMemberOfCollege(collegeId);
+        allow write: if isAdmin() && isMemberOfCollege(collegeId);
+      }
+    }
+  }
+}

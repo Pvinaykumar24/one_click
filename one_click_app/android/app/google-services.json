@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "681496090649",
+    "project_id": "one-click-1f83c",
+    "storage_bucket": "one-click-1f83c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681496090649:android:b462ac7dfc4be502513288",
+        "android_client_info": {
+          "package_name": "com.warehouse.one_click"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "681496090649-fi3bar761t1lif9jt5o86gi79jvkd2df.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlpUuT5tcpcLGMrVDgc8wd2bpyezXsPs0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "681496090649-fi3bar761t1lif9jt5o86gi79jvkd2df.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
