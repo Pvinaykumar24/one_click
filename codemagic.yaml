@@ -9,10 +9,9 @@ workflows:
       cocoapods: default
     working_directory: one_click_app
     scripts:
-      - name: Fetch Flutter dependencies & update CocoaPods
+      - name: Fetch Flutter dependencies
         script: |
           flutter pub get
-          cd ios && pod install --repo-update && cd ..
       - name: Build iOS Simulator Bundle (For free cloud web preview via Appetize.io)
         script: |
           flutter build ios --simulator
