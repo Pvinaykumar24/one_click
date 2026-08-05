@@ -1,0 +1,45 @@
+workflows:
+  free-ios-build:
+    name: Free iOS Build (No Apple Developer Account Required)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    working_directory: one_click_app
+    scripts:
+      - name: Fetch Flutter dependencies & update CocoaPods
+        script: |
+          flutter pub get
+          cd ios && pod install --repo-update && cd ..
+      - name: Build iOS Simulator Bundle (For free cloud web preview via Appetize.io)
+        script: |
+          flutter build ios --simulator
+          cd build/ios/iphonesimulator && zip -r OneClick_iOS_Simulator.zip Runner.app
+      - name: Build Unsigned iOS IPA (For free physical iPhone sideloading via Sideloadly/AltStore)
+        script: |
+          flutter build ios --release --no-codesign
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/
+          zip -q -r OneClick_iOS_Unsigned.ipa Payload
+    artifacts:
+      - one_click_app/build/ios/iphonesimulator/OneClick_iOS_Simulator.zip
+      - one_click_app/build/ios/iphoneos/OneClick_iOS_Unsigned.ipa
+
+  free-android-build:
+    name: Free Android APK Release Build
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      java: 17
+    working_directory: one_click_app
+    scripts:
+      - name: Fetch dependencies and compile standalone Release APK
+        script: |
+          flutter pub get
+          flutter build apk --release
+    artifacts:
+      - one_click_app/build/app/outputs/flutter-apk/app-release.apk
