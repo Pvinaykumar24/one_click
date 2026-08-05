@@ -66,5 +66,23 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>One Click requires access to your photo gallery to attach receipts to transactions in Money Manager.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>One Click requires camera access to capture receipt photos directly within Money Manager.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>One Click requires microphone access for video recording during camera usage.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>remote-notification</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.flutter.workmanager.background_task</string>
+		<string>sync_classroom_task</string>
+		<string>one_click_classroom_sync</string>
+	</array>
 </dict>
 </plist>
