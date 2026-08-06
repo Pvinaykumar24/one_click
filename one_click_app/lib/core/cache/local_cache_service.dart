@@ -104,4 +104,24 @@ class LocalCacheService {
     await box.delete('menu_$parity');
     await box.delete('ts_$parity');
   }
+
+  // ─── Parity Preference ──────────────────────────────────────────────────────
+
+  /// Save user's explicit Even/Odd week toggle preference.
+  static Future<void> writeSavedParity(bool isEvenWeek) async {
+    final box = Hive.box<String>(_messBox);
+    await box.put('user_selected_parity', isEvenWeek.toString());
+  }
+
+  /// Read user's saved Even/Odd week toggle preference, or null if default.
+  static bool? readSavedParity() {
+    try {
+      final box = Hive.box<String>(_messBox);
+      final raw = box.get('user_selected_parity');
+      if (raw == null) return null;
+      return raw == 'true';
+    } catch (_) {
+      return null;
+    }
+  }
 }

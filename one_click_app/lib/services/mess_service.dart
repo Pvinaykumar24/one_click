@@ -214,6 +214,9 @@ class MessDefaultTemplate {
 }
 
 final messWeekParityProvider = StateProvider<bool>((ref) {
+  final saved = LocalCacheService.readSavedParity();
+  if (saved != null) return saved;
+
   final now = DateTime.now();
   int dayOfYear = int.parse(now.difference(DateTime(now.year, 1, 1)).inDays.toString());
   int weekNum = ((dayOfYear - now.weekday + 10) / 7).floor();
@@ -312,7 +315,9 @@ class MessNotifier extends StreamNotifier<MessState> {
   }
 
   void toggleWeek() {
-    ref.read(messWeekParityProvider.notifier).update((state) => !state);
+    final nextState = !ref.read(messWeekParityProvider);
+    ref.read(messWeekParityProvider.notifier).state = nextState;
+    LocalCacheService.writeSavedParity(nextState);
   }
 
   /// Explicit admin action: writes the default menu template for both weeks
