@@ -248,58 +248,67 @@ class MessNotifier extends StreamNotifier<MessState> {
       }
     });
 
-    // ── 2. Attach Firestore stream scoped by collegeId ────────────────────────
-    return _db
+    // ── 2. Attach Firestore stream with fail-safe error recovery ──────────────
+    final controller = StreamController<MessState>();
+
+    final subscription = _db
         .collection('institutions')
         .doc(collegeId)
         .collection('messMenu')
         .doc(weekPath)
         .collection('days')
         .snapshots()
-        .asyncMap((snapshot) async {
-      if (snapshot.docs.isEmpty) {
-        // Fallback to default template so students always see a full, real menu
+        .listen(
+      (snapshot) {
+        if (snapshot.docs.isEmpty) {
+          final fallbackList = MessDefaultTemplate.buildMenus(isEvenWeek);
+          final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+
+          controller.add(MessState(
+            weeklyMenu: fallbackMenu,
+            isAdmin: isAdmin,
+            isEvenWeek: isEvenWeek,
+            fromCache: true,
+            lastUpdated: DateTime.now(),
+          ));
+        } else {
+          final Map<String, MessMenu> newMenu = {};
+          for (var doc in snapshot.docs) {
+            newMenu[doc.id] = MessMenu.fromMap(doc.data());
+          }
+          final freshState = MessState(
+            weeklyMenu: newMenu,
+            isAdmin: isAdmin,
+            isEvenWeek: isEvenWeek,
+            fromCache: false,
+            lastUpdated: DateTime.now(),
+          );
+
+          LocalCacheService.writeMessMenu(cacheKey, freshState);
+          controller.add(freshState);
+        }
+      },
+      onError: (error) {
+        debugPrint('Firestore Mess Stream Error: $error. Emitting default template.');
         final fallbackList = MessDefaultTemplate.buildMenus(isEvenWeek);
         final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
 
-        return MessState(
+        controller.add(MessState(
           weeklyMenu: fallbackMenu,
           isAdmin: isAdmin,
           isEvenWeek: isEvenWeek,
           fromCache: true,
           lastUpdated: DateTime.now(),
-        );
-      }
+        ));
+      },
+    );
 
-      final Map<String, MessMenu> newMenu = {};
-      for (var doc in snapshot.docs) {
-        newMenu[doc.id] = MessMenu.fromMap(doc.data());
-      }
-      final freshState = MessState(
-        weeklyMenu: newMenu,
-        isAdmin: isAdmin,
-        isEvenWeek: isEvenWeek,
-        fromCache: false,
-        lastUpdated: DateTime.now(),
-      );
-
-      // ── 3. Write back to Hive cache (fire-and-forget) ─────────────────────
-      LocalCacheService.writeMessMenu(cacheKey, freshState);
-
-      return freshState;
-    }).handleError((error, stackTrace) {
-      debugPrint('Firestore Mess Stream Error: $error. Returning default fallback menu.');
-      final fallbackList = MessDefaultTemplate.buildMenus(isEvenWeek);
-      final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
-
-      return MessState(
-        weeklyMenu: fallbackMenu,
-        isAdmin: isAdmin,
-        isEvenWeek: isEvenWeek,
-        fromCache: true,
-        lastUpdated: DateTime.now(),
-      );
+    ref.onDispose(() {
+      subscription.cancel();
+      controller.close();
     });
+
+    return controller.stream;
   }
 
   void toggleWeek() {
