@@ -27,6 +27,7 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
     {'start': '10:00', 'end': '11:00', 'label': '10:00 - 11:00 AM'},
     {'start': '11:00', 'end': '12:00', 'label': '11:00 - 12:00 PM'},
     {'start': '12:00', 'end': '13:00', 'label': '12:00 - 01:00 PM'},
+    {'start': '13:00', 'end': '14:00', 'label': '01:00 - 02:00 PM'},
     {'start': '14:00', 'end': '15:00', 'label': '02:00 - 03:00 PM'},
     {'start': '15:00', 'end': '16:00', 'label': '03:00 - 04:00 PM'},
     {'start': '16:00', 'end': '17:00', 'label': '04:00 - 05:00 PM'},

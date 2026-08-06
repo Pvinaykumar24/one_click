@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'admin_service.dart';
 import 'institution_service.dart';
+import 'onboarding_service.dart';
 import '../core/cache/local_cache_service.dart';
 
 // ─── Data Models ────────────────────────────────────────────────────────────
@@ -212,34 +213,32 @@ class MessDefaultTemplate {
   }
 }
 
+final messWeekParityProvider = StateProvider<bool>((ref) {
+  final now = DateTime.now();
+  int dayOfYear = int.parse(now.difference(DateTime(now.year, 1, 1)).inDays.toString());
+  int weekNum = ((dayOfYear - now.weekday + 10) / 7).floor();
+  return weekNum % 2 != 0;
+});
+
 // ─── Notifier ────────────────────────────────────────────────────────────────
 
 class MessNotifier extends StreamNotifier<MessState> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  late bool _isEvenWeek;
-
-  MessNotifier() {
-    _isEvenWeek = getCalculatedParity();
-  }
-
-  static bool getCalculatedParity() {
-    final now = DateTime.now();
-    int dayOfYear = int.parse(now.difference(DateTime(now.year, 1, 1)).inDays.toString());
-    int weekNum = ((dayOfYear - now.weekday + 10) / 7).floor();
-    return weekNum % 2 != 0;
-  }
 
   @override
   Stream<MessState> build() {
     final isAdmin = ref.watch(adminProvider).valueOrNull ?? false;
-    final institution = ref.watch(institutionProvider).valueOrNull;
-    final collegeId = institution?.collegeId ?? 'iiitdm';
-    final weekPath = _isEvenWeek ? 'even' : 'odd';
+    final onboardingState = ref.watch(onboardingProvider).valueOrNull;
+    final collegeName = onboardingState?.userData['college']?.toString() ?? '';
+    final collegeId = collegeName.trim().isNotEmpty
+        ? collegeName.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')
+        : 'iiitdm';
+        
+    final isEvenWeek = ref.watch(messWeekParityProvider);
+    final weekPath = isEvenWeek ? 'even' : 'odd';
     final cacheKey = '${collegeId}_$weekPath';
 
     // ── 1. Seed from Hive cache immediately (synchronous) ─────────────────────
-    // The StreamNotifier's initial AsyncValue is AsyncLoading until the stream
-    // emits. We schedule a microtask to set cached state before Firestore fires.
     Future.microtask(() {
       if (state is AsyncLoading) {
         final cached = LocalCacheService.readMessMenu(cacheKey, isAdmin: isAdmin);
@@ -260,13 +259,13 @@ class MessNotifier extends StreamNotifier<MessState> {
         .asyncMap((snapshot) async {
       if (snapshot.docs.isEmpty) {
         // Fallback to default template so students always see a full, real menu
-        final fallbackList = MessDefaultTemplate.buildMenus(_isEvenWeek);
+        final fallbackList = MessDefaultTemplate.buildMenus(isEvenWeek);
         final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
 
         return MessState(
           weeklyMenu: fallbackMenu,
           isAdmin: isAdmin,
-          isEvenWeek: _isEvenWeek,
+          isEvenWeek: isEvenWeek,
           fromCache: true,
           lastUpdated: DateTime.now(),
         );
@@ -279,7 +278,7 @@ class MessNotifier extends StreamNotifier<MessState> {
       final freshState = MessState(
         weeklyMenu: newMenu,
         isAdmin: isAdmin,
-        isEvenWeek: _isEvenWeek,
+        isEvenWeek: isEvenWeek,
         fromCache: false,
         lastUpdated: DateTime.now(),
       );
@@ -290,13 +289,13 @@ class MessNotifier extends StreamNotifier<MessState> {
       return freshState;
     }).handleError((error, stackTrace) {
       debugPrint('Firestore Mess Stream Error: $error. Returning default fallback menu.');
-      final fallbackList = MessDefaultTemplate.buildMenus(_isEvenWeek);
+      final fallbackList = MessDefaultTemplate.buildMenus(isEvenWeek);
       final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
 
       return MessState(
         weeklyMenu: fallbackMenu,
         isAdmin: isAdmin,
-        isEvenWeek: _isEvenWeek,
+        isEvenWeek: isEvenWeek,
         fromCache: true,
         lastUpdated: DateTime.now(),
       );
@@ -304,8 +303,7 @@ class MessNotifier extends StreamNotifier<MessState> {
   }
 
   void toggleWeek() {
-    _isEvenWeek = !_isEvenWeek;
-    ref.invalidateSelf();
+    ref.read(messWeekParityProvider.notifier).update((state) => !state);
   }
 
   /// Explicit admin action: writes the default menu template for both weeks
@@ -350,7 +348,8 @@ class MessNotifier extends StreamNotifier<MessState> {
 
       final institution = ref.read(institutionProvider).valueOrNull;
       final collegeId = institution?.collegeId ?? 'iiitdm';
-      final weekPath = _isEvenWeek ? 'even' : 'odd';
+      final isEvenWeek = ref.read(messWeekParityProvider);
+      final weekPath = isEvenWeek ? 'even' : 'odd';
       await _db
           .collection('institutions')
           .doc(collegeId)

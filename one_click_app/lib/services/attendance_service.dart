@@ -42,19 +42,25 @@ class AttendanceRecord {
   }
 }
 
+final attendanceThresholdProvider = StateProvider<double>((ref) {
+  final institution = ref.watch(institutionProvider).valueOrNull;
+  return institution?.attendanceThreshold ?? kFallbackAttendanceThreshold;
+});
+
+final customAttendanceSubjectsProvider = StateProvider<List<String>>((ref) => []);
+
 class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  /// Returns the required attendance percentage from the user's institution config.
-  /// Falls back to [kFallbackAttendanceThreshold] (75.0%) if institution config is unloaded or missing.
+
   double get requiredPercentage {
-    final institution = ref.read(institutionProvider).valueOrNull;
-    return institution?.attendanceThreshold ?? kFallbackAttendanceThreshold;
+    return ref.read(attendanceThresholdProvider);
   }
 
   @override
   Stream<List<AttendanceRecord>> build() {
-    ref.watch(timetableProvider); // Automatically rebuilds when timetable changes
-    ref.watch(institutionProvider); // Automatically rebuilds when institution config changes
+    ref.watch(timetableProvider);
+    ref.watch(institutionProvider);
+    ref.watch(customAttendanceSubjectsProvider);
 
     final authState = ref.watch(authProvider);
 
@@ -84,7 +90,11 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
 
   List<String> get subjects {
     final slots = ref.read(timetableProvider.notifier).slots;
-    return slots.map((s) => s.subject).toSet().toList()..sort();
+    final timetableSubjects = slots.map((s) => s.subject).toSet();
+    final recordSubjects = records.map((r) => r.subject).toSet();
+    final customSubjects = ref.read(customAttendanceSubjectsProvider).toSet();
+    final combined = {...timetableSubjects, ...recordSubjects, ...customSubjects};
+    return combined.toList()..sort();
   }
 
   Map<String, int> get expectedClasses {
@@ -92,9 +102,22 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
     final slots = ref.read(timetableProvider.notifier).slots;
     for (var subject in subjects) {
       int sessionsPerWeek = slots.where((s) => s.subject == subject).length;
-      counts[subject] = sessionsPerWeek * 15; // Assume 15 week semester
+      counts[subject] = (sessionsPerWeek > 0 ? sessionsPerWeek : 3) * 15; // Assume 15 week semester
     }
     return counts;
+  }
+
+  Future<void> addCustomSubject(String subjectName) async {
+    final cleanName = subjectName.trim();
+    if (cleanName.isEmpty) return;
+    final current = ref.read(customAttendanceSubjectsProvider);
+    if (!current.contains(cleanName)) {
+      ref.read(customAttendanceSubjectsProvider.notifier).state = [...current, cleanName];
+    }
+  }
+
+  Future<void> setThreshold(double value) async {
+    ref.read(attendanceThresholdProvider.notifier).state = value;
   }
 
   Future<void> _updateAttendanceStatus(String subject, DateTime date, String slot, String status) async {
@@ -127,12 +150,28 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
     await _updateAttendanceStatus(subject, date, slot, 'cancelled');
   }
 
-  Future<void> updatePreviousAttendance(String subject, DateTime date, String slot, bool wasPresent) async {
-    if (wasPresent) {
-      await markAttended(subject, date, slot);
-    } else {
-      await markAbsent(subject, date, slot);
-    }
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  Future<void> logAttendance(String subject, String status) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final now = DateTime.now();
+    final slotStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    await _db.collection('users').doc(user.uid).collection('attendance').add({
+      'subject': subject,
+      'date': Timestamp.fromDate(now),
+      'slot': slotStr,
+      'status': status,
+    });
+  }
+
+  Future<void> deleteRecord(String recordId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _db.collection('users').doc(user.uid).collection('attendance').doc(recordId).delete();
   }
 
   Map<String, dynamic> getSubjectInfo(String subject) {
@@ -147,6 +186,7 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
     double currentPercentage = held > 0 ? (attended / held) * 100 : 100.0;
 
     int remainingClasses = expected - held - cancelled;
+    if (remainingClasses < 0) remainingClasses = 0;
     int totalAfterSemester = held + remainingClasses;
     int requiredTotal = (totalAfterSemester * (requiredPercentage / 100)).ceil();
     int safeBunksLeft = attended + remainingClasses - requiredTotal;
@@ -181,10 +221,6 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
       totalAttended += info['attended'] as int;
     }
     return totalHeld > 0 ? (totalAttended / totalHeld) * 100 : 100.0;
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
 
