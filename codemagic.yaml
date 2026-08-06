@@ -26,8 +26,8 @@ workflows:
           cp -R Runner.app Payload/
           zip -q -r OneClick_iOS_Unsigned.ipa Payload
     artifacts:
-      - one_click_app/build/ios/iphonesimulator/OneClick_iOS_Simulator.zip
-      - one_click_app/build/ios/iphoneos/OneClick_iOS_Unsigned.ipa
+      - build/ios/iphonesimulator/OneClick_iOS_Simulator.zip
+      - build/ios/iphoneos/OneClick_iOS_Unsigned.ipa
 
   free-android-build:
     name: Free Android APK Release Build
@@ -43,4 +43,4 @@ workflows:
           flutter pub get
           flutter build apk --release
     artifacts:
-      - one_click_app/build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/flutter-apk/app-release.apk
