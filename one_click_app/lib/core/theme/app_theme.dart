@@ -28,14 +28,19 @@ class AppTheme {
         centerTitle: false,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface.withValues(alpha: 0.85), // Glassmorphism base
-        elevation: 12,
-        shadowColor: Colors.black.withValues(alpha: 0.4),
+        color: AppColors.surface,
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.6),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24), // Apple-style smooth corners
-          side: const BorderSide(color: AppColors.borderLight, width: 1), // Subtle 1px border
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.borderLight, width: 1),
         ),
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -46,8 +51,26 @@ class AppTheme {
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        hintStyle: const TextStyle(color: AppColors.textDisabled, fontSize: 14),
       ),
       iconTheme: const IconThemeData(
         color: AppColors.textPrimary,
@@ -62,18 +85,18 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          elevation: 8,
-          shadowColor: AppColors.primary.withValues(alpha: 0.5), // Glowing neon shadow
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          elevation: 6,
+          shadowColor: AppColors.primary.withValues(alpha: 0.4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.neonCyan,
-        foregroundColor: Colors.black,
-        elevation: 12,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 10,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
