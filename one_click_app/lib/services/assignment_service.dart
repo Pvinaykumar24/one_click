@@ -109,6 +109,11 @@ class AssignmentNotifier extends StreamNotifier<AssignmentState> {
         if (user == null) {
           return Stream.value(AssignmentState(assignments: []));
         }
+
+        // Auto-sync Google Classroom assignments seamlessly in the background
+        Future.microtask(() {
+          syncWithClassroom(isBackground: true);
+        });
         return _db
             .collection('users')
             .doc(user.id)
@@ -203,6 +208,7 @@ class AssignmentNotifier extends StreamNotifier<AssignmentState> {
 
         final newTitle = cw['title'] as String? ?? 'Untitled Assignment';
         final newDesc = cw['description'] as String? ?? '';
+        final gcrStatus = cw['status'] as String? ?? 'pending';
 
         // Match on stable Classroom ID first; fall back to (title, course) for legacy un-migrated assignments
         Assignment? match;
@@ -214,10 +220,11 @@ class AssignmentNotifier extends StreamNotifier<AssignmentState> {
         }
 
         if (match != null) {
-          // Check if due date, title, description, or missing classroomId changed
+          // Check if due date, title, description, status, or missing classroomId changed
           final bool changed = match.classroomId != cwId ||
               match.title != newTitle ||
               match.description != newDesc ||
+              match.status != gcrStatus ||
               match.dueDate.year != dueDate.year ||
               match.dueDate.month != dueDate.month ||
               match.dueDate.day != dueDate.day ||
@@ -228,6 +235,7 @@ class AssignmentNotifier extends StreamNotifier<AssignmentState> {
               'classroomId': cwId,
               'title': newTitle,
               'description': newDesc,
+              'status': gcrStatus,
               'dueDate': Timestamp.fromDate(dueDate),
               'isDeleted': false,
             });
@@ -245,7 +253,7 @@ class AssignmentNotifier extends StreamNotifier<AssignmentState> {
             title: newTitle,
             course: courseName,
             dueDate: dueDate,
-            status: 'pending',
+            status: gcrStatus,
             description: newDesc,
             classroomId: cwId.isNotEmpty ? cwId : null,
             isDeleted: false,

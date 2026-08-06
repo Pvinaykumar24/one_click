@@ -83,6 +83,31 @@ class ClassroomService {
               );
             }
 
+            String gcrStatus = 'pending';
+            try {
+              if (course.id != null && work.id != null) {
+                final subs = await classroomApi.courses.courseWork.studentSubmissions.list(
+                  course.id!,
+                  work.id!,
+                  userId: 'me',
+                );
+                final subState = subs.studentSubmissions != null && subs.studentSubmissions!.isNotEmpty
+                    ? subs.studentSubmissions!.first.state
+                    : null;
+                if (subState == 'TURNED_IN' || subState == 'RETURNED') {
+                  gcrStatus = 'completed';
+                } else if (dueDateTime.isBefore(DateTime.now())) {
+                  gcrStatus = 'missing';
+                } else {
+                  gcrStatus = 'pending';
+                }
+              }
+            } catch (e) {
+              if (dueDateTime.isBefore(DateTime.now())) {
+                gcrStatus = 'missing';
+              }
+            }
+
             final assignmentMap = {
               'courseId': course.id ?? '',
               'courseName': course.name ?? '',
@@ -90,6 +115,7 @@ class ClassroomService {
                 'id': work.id ?? '',
                 'title': work.title ?? 'Untitled Assignment',
                 'description': work.description ?? '',
+                'status': gcrStatus,
                 'dueDate': {
                   'year': dueDateTime.year,
                   'month': dueDateTime.month,
