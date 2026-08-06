@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,13 +34,15 @@ void main() async {
     debugPrint("🚀 [MAIN] FIREBASE INIT ERROR: $e");
   }
 
-  // Enable Firestore offline persistence (default-on for mobile, made explicit
-  // here to document intent and guard against future SDK default changes).
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
-  debugPrint("🚀 [MAIN] FIRESTORE PERSISTENCE ENABLED");
+  // Enable Firestore offline persistence for mobile. 
+  // Web IndexedDB persistence is known to occasionally deadlock Firebase Auth initialization, so we bypass it on Web.
+  if (!kIsWeb) {
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+    debugPrint("🚀 [MAIN] FIRESTORE PERSISTENCE ENABLED");
+  }
 
   // Initialise Hive and open the two lightweight cache boxes.
   await Hive.initFlutter();

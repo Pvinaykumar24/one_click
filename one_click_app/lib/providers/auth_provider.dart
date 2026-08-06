@@ -33,10 +33,22 @@ class AuthNotifier extends StateNotifier<AsyncValue<AppUser?>> {
   final GoogleAuthService _authService;
 
   AuthNotifier(this._authService) : super(const AsyncValue.loading()) {
+    // Fallback safety timeout for Flutter Web: if Firebase Auth initialization hangs, 
+    // force the state out of loading so the UI router doesn't infinite loop.
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && state.isLoading) {
+        state = const AsyncValue.data(null);
+      }
+    });
+
     // Listen to Firebase Auth stream so UI always reflects current user
     _authService.userStream.listen(
-      (user) => state = AsyncValue.data(user),
-      onError: (e, st) => state = AsyncValue.error(e, st),
+      (user) {
+        if (mounted) state = AsyncValue.data(user);
+      },
+      onError: (e, st) {
+        if (mounted) state = AsyncValue.error(e, st);
+      },
     );
   }
 
