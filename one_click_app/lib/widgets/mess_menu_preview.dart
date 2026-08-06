@@ -65,199 +65,214 @@ class MessMenuPreview extends ConsumerWidget {
 
     return messAsync.when(
       loading: () => _buildLoadingSkeleton(),
-      error: (e, _) => _buildErrorCard(),
+      error: (e, _) {
+        final fallbackList = MessDefaultTemplate.buildMenus(true);
+        final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+        final fallbackState = MessState(
+          weeklyMenu: fallbackMenu,
+          isAdmin: false,
+          isEvenWeek: true,
+          fromCache: true,
+          lastUpdated: DateTime.now(),
+        );
+        return _buildMenuContent(context, fallbackState);
+      },
       data: (messState) {
-        // No menu data yet — show a compact placeholder
         if (messState.weeklyMenu.isEmpty) {
-          return _buildNoDataCard(context);
+          final fallbackList = MessDefaultTemplate.buildMenus(messState.isEvenWeek);
+          final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+          return _buildMenuContent(context, messState.copyWith(weeklyMenu: fallbackMenu));
         }
+        return _buildMenuContent(context, messState);
+      },
+    );
+  }
 
-        final now = DateTime.now();
-        final dayNames = [
-          'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-          'Friday', 'Saturday', 'Sunday',
-        ];
-        final todayName = dayNames[now.weekday - 1];
-        final double currentTime = now.hour + now.minute / 60.0;
+  Widget _buildMenuContent(BuildContext context, MessState messState) {
+    final now = DateTime.now();
+    final dayNames = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+      'Friday', 'Saturday', 'Sunday',
+    ];
+    final todayName = dayNames[now.weekday - 1];
+    final double currentTime = now.hour + now.minute / 60.0;
 
-        final (resolvedMeal, isLive) = _resolveCurrentMeal(currentTime);
+    final (resolvedMeal, isLive) = _resolveCurrentMeal(currentTime);
 
-        final dayMenu = messState.weeklyMenu[todayName];
-        final weekLabel = messState.isEvenWeek ? 'Even Week Menu' : 'Odd Week Menu';
+    final dayMenu = messState.weeklyMenu[todayName];
+    final weekLabel = messState.isEvenWeek ? 'Even Week Menu' : 'Odd Week Menu';
 
-        late List<String> mealItems;
-        if (dayMenu != null) {
-          final firestoreMeal = dayMenu.meals.firstWhere(
-            (m) => m.name == resolvedMeal,
-            orElse: () => dayMenu.meals.isNotEmpty
-                ? dayMenu.meals[0]
-                : MessMeal(name: resolvedMeal, items: []),
-          );
-          mealItems = firestoreMeal.items;
-        } else {
-          mealItems = ['—'];
-        }
+    late List<String> mealItems;
+    if (dayMenu != null) {
+      final firestoreMeal = dayMenu.meals.firstWhere(
+        (m) => m.name == resolvedMeal,
+        orElse: () => dayMenu.meals.isNotEmpty
+            ? dayMenu.meals[0]
+            : MessMeal(name: resolvedMeal, items: []),
+      );
+      mealItems = firestoreMeal.items;
+    } else {
+      mealItems = ['—'];
+    }
 
-        final mealIcon = _getMealIcon(resolvedMeal);
-        final mealColor = _getMealColor(resolvedMeal);
-        final mealTime = _getMealTime(resolvedMeal);
-        final mealItemsText = mealItems.join(', ');
+    final mealIcon = _getMealIcon(resolvedMeal);
+    final mealColor = _getMealColor(resolvedMeal);
+    final mealTime = _getMealTime(resolvedMeal);
+    final mealItemsText = mealItems.join(', ');
 
-        return GestureDetector(
-          onTap: () => context.push('/mess'),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Header ──────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return GestureDetector(
+      onTap: () => context.push('/mess'),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F131C),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF1E2638), width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ──────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      Row(
+                      Icon(
+                        Icons.restaurant,
+                        color: mealColor,
+                        size: 22,
+                        shadows: [Shadow(color: mealColor, blurRadius: 10)],
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Mess Menu',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  _buildStatusBadge(isLive),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // ── Meal card ────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: mealColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border(
+                    left: BorderSide(color: mealColor, width: 3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: mealColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(mealIcon, color: mealColor, size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.restaurant,
-                            color: mealColor,
-                            size: 22,
-                            shadows: [Shadow(color: mealColor, blurRadius: 10)],
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Mess Menu',
+                          Text(
+                            isLive
+                                ? '$resolvedMeal — Serving Now'
+                                : 'Up Next: $resolvedMeal',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: mealColor,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            mealItemsText,
+                            style: const TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time, size: 11, color: AppColors.textSecondary),
+                              const SizedBox(width: 4),
+                              Text(mealTime, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 3,
+                                height: 3,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.textSecondary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(weekLabel, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            ],
                           ),
                         ],
                       ),
-                      _buildStatusBadge(isLive),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // ── Meal card ────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: mealColor.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border(
-                        left: BorderSide(color: mealColor, width: 3),
-                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 58,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            color: mealColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(mealIcon, color: mealColor, size: 26),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isLive
-                                    ? '$resolvedMeal — Serving Now'
-                                    : 'Up Next: $resolvedMeal',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: mealColor,
-                                  letterSpacing: 0.6,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                mealItemsText,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time, size: 11, color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Text(mealTime, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    width: 3,
-                                    height: 3,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.textSecondary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(weekLabel, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
-                      ],
-                    ),
-                  ),
+                    const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+                  ],
                 ),
-
-                // ── All meals quick strip ────────────────────────────────────
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildMealStripRow(currentTime),
-                ),
-
-                // ── "View Full Menu" button ──────────────────────────────────
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push('/mess'),
-                      icon: const Icon(Icons.menu_book, size: 16),
-                      label: const Text('View Full Day Menu'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.35)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+
+            // ── All meals quick strip ────────────────────────────────────
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildMealStripRow(currentTime),
+            ),
+
+            // ── "View Full Menu" button ──────────────────────────────────
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/mess'),
+                  icon: const Icon(Icons.menu_book, size: 16),
+                  label: const Text('View Full Day Menu'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.35)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

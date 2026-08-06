@@ -287,6 +287,18 @@ class MessNotifier extends StreamNotifier<MessState> {
       LocalCacheService.writeMessMenu(cacheKey, freshState);
 
       return freshState;
+    }).handleError((error, stackTrace) {
+      debugPrint('Firestore Mess Stream Error: $error. Returning default fallback menu.');
+      final fallbackList = MessDefaultTemplate.buildMenus(_isEvenWeek);
+      final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+
+      return MessState(
+        weeklyMenu: fallbackMenu,
+        isAdmin: isAdmin,
+        isEvenWeek: _isEvenWeek,
+        fromCache: true,
+        lastUpdated: DateTime.now(),
+      );
     });
   }
 

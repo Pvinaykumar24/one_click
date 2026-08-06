@@ -35,24 +35,26 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
-          error: (e, st) => Center(
-            child: Text(
-              'Error loading menu: $e',
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-          data: (messState) => Column(
-            children: [
-              _buildHeader(messState),
-              Expanded(
-                child: messState.weeklyMenu.isEmpty
-                    ? _buildEmptyState(messState)
-                    : _isFullWeekView
-                        ? _buildFullWeekView(messState)
-                        : _buildSingleDayView(messState),
-              ),
-            ],
-          ),
+          error: (e, st) {
+            final fallbackList = MessDefaultTemplate.buildMenus(true);
+            final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+            final fallbackState = MessState(
+              weeklyMenu: fallbackMenu,
+              isAdmin: false,
+              isEvenWeek: true,
+              fromCache: true,
+              lastUpdated: DateTime.now(),
+            );
+            return _buildScreenBody(fallbackState);
+          },
+          data: (messState) {
+            if (messState.weeklyMenu.isEmpty) {
+              final fallbackList = MessDefaultTemplate.buildMenus(messState.isEvenWeek);
+              final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+              return _buildScreenBody(messState.copyWith(weeklyMenu: fallbackMenu));
+            }
+            return _buildScreenBody(messState);
+          },
         ),
       ),
       floatingActionButton: ref.watch(messProvider).valueOrNull?.weeklyMenu.isNotEmpty == true
@@ -66,6 +68,21 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
               ),
             )
           : null,
+    );
+  }
+
+  Widget _buildScreenBody(MessState messState) {
+    return Column(
+      children: [
+        _buildHeader(messState),
+        Expanded(
+          child: messState.weeklyMenu.isEmpty
+              ? _buildEmptyState(messState)
+              : _isFullWeekView
+                  ? _buildFullWeekView(messState)
+                  : _buildSingleDayView(messState),
+        ),
+      ],
     );
   }
 
