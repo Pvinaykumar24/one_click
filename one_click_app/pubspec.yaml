@@ -63,9 +63,6 @@ dependencies:
   firebase_storage: ^13.4.6
   image_picker: ^1.2.3
 
-dependency_overrides:
-  path_provider_foundation: 2.4.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
