@@ -20,14 +20,14 @@ import '../../screens/onboarding/onboarding_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final notifier = ValueNotifier<void>(null);
+  final notifier = ValueNotifier<int>(0);
 
   ref.listen(authProvider, (previous, next) {
-    notifier.value = null;
+    notifier.value++;
   });
 
   ref.listen(onboardingProvider, (previous, next) {
-    notifier.value = null;
+    notifier.value++;
   });
 
   final router = GoRouter(
