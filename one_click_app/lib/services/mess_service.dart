@@ -14,6 +14,15 @@ class MessMeal {
 
   MessMeal({required this.name, required this.items, this.imageUrl = ''});
 
+  String get displayImageUrl {
+    if (imageUrl.isNotEmpty) return imageUrl;
+    if (name.contains('Breakfast')) return 'assets/mess/breakfast.png';
+    if (name.contains('Lunch')) return 'assets/mess/lunch.png';
+    if (name.contains('Snacks')) return 'assets/mess/snacks.png';
+    if (name.contains('Dinner')) return 'assets/mess/dinner.png';
+    return '';
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -249,12 +258,15 @@ class MessNotifier extends StreamNotifier<MessState> {
         .snapshots()
         .asyncMap((snapshot) async {
       if (snapshot.docs.isEmpty) {
-        // No data yet — return empty state. Admin should use "Initialize Menu" button.
+        // Fallback to default template so students always see a full, real menu
+        final fallbackList = MessDefaultTemplate.buildMenus(_isEvenWeek);
+        final Map<String, MessMenu> fallbackMenu = {for (var m in fallbackList) m.day: m};
+
         return MessState(
-          weeklyMenu: {},
+          weeklyMenu: fallbackMenu,
           isAdmin: isAdmin,
           isEvenWeek: _isEvenWeek,
-          fromCache: false,
+          fromCache: true,
           lastUpdated: DateTime.now(),
         );
       }

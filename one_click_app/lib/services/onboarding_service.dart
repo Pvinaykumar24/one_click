@@ -91,22 +91,47 @@ class OnboardingNotifier extends StreamNotifier<OnboardingState> {
 
   Future<void> completeOnboarding(Map<String, dynamic> userData) async {
     final user = FirebaseAuth.instance.currentUser;
+    final mergedData = {...state.valueOrNull?.userData ?? {}, ...userData, 'hasCompletedOnboarding': true};
+    
     state = AsyncValue.data(OnboardingState(
       hasCompletedOnboarding: true,
-      userData: {...userData, 'hasCompletedOnboarding': true},
+      userData: mergedData,
       isLoading: false,
     ));
 
     if (user != null) {
       try {
         await _firestore.collection('users').doc(user.uid).set({
-          ...userData,
-          'hasCompletedOnboarding': true,
+          ...mergedData,
           'lastUpdated': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         debugPrint("AUTH: Onboarding completed and saved to Firestore");
       } catch (e) {
         debugPrint("AUTH ERROR: Failed to save onboarding data to Firestore: $e");
+      }
+    }
+  }
+
+  Future<void> updateUserData(Map<String, dynamic> updatedFields) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final currentData = state.valueOrNull?.userData ?? {};
+    final mergedData = {...currentData, ...updatedFields};
+
+    state = AsyncValue.data(OnboardingState(
+      hasCompletedOnboarding: state.valueOrNull?.hasCompletedOnboarding ?? true,
+      userData: mergedData,
+      isLoading: false,
+    ));
+
+    if (user != null) {
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          ...updatedFields,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        debugPrint("AUTH: User profile updated in Firestore");
+      } catch (e) {
+        debugPrint("AUTH ERROR: Failed to update user profile in Firestore: $e");
       }
     }
   }

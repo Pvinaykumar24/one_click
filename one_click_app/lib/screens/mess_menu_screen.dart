@@ -180,7 +180,7 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
                 mealName: meal.items.join(', '),
                 kcal: '${meal.items.length * 150} kcal',
                 protein: '${meal.items.length * 5}g Protein',
-                imgUrl: meal.imageUrl,
+                imgUrl: meal.displayImageUrl,
                 opacity: 1.0,
                 onEdit: messState.isAdmin
                     ? () => _editMeal(currentDayName, idx, meal)
