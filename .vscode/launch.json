@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "one_click_app (Web - Port 8080)",
+      "request": "launch",
+      "type": "dart",
+      "program": "one_click_app/lib/main.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-port=8080"
+      ]
+    }
+  ]
+}
