@@ -45,11 +45,18 @@ class AdminNotifier extends StreamNotifier<bool> {
     try {
       debugPrint('Wiping all user data client-side (authorized via custom claims)...');
       
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
       final usersSnapshot = await _db.collection('users').get();
       final batch = _db.batch();
 
       for (var userDoc in usersSnapshot.docs) {
         final uid = userDoc.id;
+        
+        // Skip deleting the current admin's data!
+        if (uid == currentUid) {
+          debugPrint('Skipping deletion for admin UID: $uid');
+          continue;
+        }
         
         final subCollections = [
           'finances', 
