@@ -30,9 +30,9 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface.withOpacity(0.85), // Glassmorphism base
+        color: AppColors.surface.withValues(alpha: 0.85), // Glassmorphism base
         elevation: 12,
-        shadowColor: Colors.black.withOpacity(0.4),
+        shadowColor: Colors.black.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24), // Apple-style smooth corners
           side: const BorderSide(color: AppColors.borderLight, width: 1), // Subtle 1px border
@@ -63,7 +63,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 8,
-          shadowColor: AppColors.primary.withOpacity(0.5), // Glowing neon shadow
+          shadowColor: AppColors.primary.withValues(alpha: 0.5), // Glowing neon shadow
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),

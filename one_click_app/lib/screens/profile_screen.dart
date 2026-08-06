@@ -233,7 +233,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget _buildStatsGrid(WidgetRef ref) {
     final attendanceNotifier = ref.read(attendanceProvider.notifier);
     final moneyState = ref.watch(moneyManagerProvider).valueOrNull ?? MoneyManagerState(transactions: []);
-    final cgpa = ref.read(cgpaProvider.notifier).calculateCurrentCgpa().toStringAsFixed(2);
+    final cgpa = ref.read(cgpaProvider.notifier).calculateCurrentCGPA().toStringAsFixed(2);
 
     return Row(
       children: [
@@ -435,7 +435,7 @@ class ProfileScreen extends ConsumerWidget {
                               const Text('DEGREE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
-                                value: ['B.Tech', 'M.Tech', 'Dual Degree', 'Ph.D'].contains(selectedDegree) ? selectedDegree : 'B.Tech',
+                                initialValue: ['B.Tech', 'M.Tech', 'Dual Degree', 'Ph.D'].contains(selectedDegree) ? selectedDegree : 'B.Tech',
                                 decoration: _modalInputDecoration('Degree'),
                                 dropdownColor: const Color(0xFF1E293B),
                                 style: const TextStyle(color: Colors.white),
@@ -457,7 +457,7 @@ class ProfileScreen extends ConsumerWidget {
                               const Text('SEMESTER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<int>(
-                                value: selectedSem,
+                                initialValue: selectedSem,
                                 decoration: _modalInputDecoration('Sem'),
                                 dropdownColor: const Color(0xFF1E293B),
                                 style: const TextStyle(color: Colors.white),
@@ -476,7 +476,7 @@ class ProfileScreen extends ConsumerWidget {
                     const Text('DEPARTMENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
-                      value: ['CSE', 'ECE', 'ME', 'CIVIL', 'EEE'].contains(selectedDept) ? selectedDept : 'CSE',
+                      initialValue: ['CSE', 'ECE', 'ME', 'CIVIL', 'EEE'].contains(selectedDept) ? selectedDept : 'CSE',
                       decoration: _modalInputDecoration('Dept'),
                       dropdownColor: const Color(0xFF1E293B),
                       style: const TextStyle(color: Colors.white),
@@ -533,7 +533,7 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showTranscriptDialog(BuildContext context, WidgetRef ref) {
-    final cgpa = ref.read(cgpaProvider.notifier).calculateCurrentCgpa().toStringAsFixed(2);
+    final cgpa = ref.read(cgpaProvider.notifier).calculateCurrentCGPA().toStringAsFixed(2);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -615,9 +615,9 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Text('Signed in as: ${user?.email ?? "Student"}', style: const TextStyle(color: Colors.white, fontSize: 13)),
             const SizedBox(height: 8),
-            const Text('Authentication: Google Single Sign-On (SSO)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text('Authentication: Google Single Sign-On (SSO)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             const SizedBox(height: 8),
-            const Text('Data Protection: Encrypted Local & Cloud Sync', style: const TextStyle(color: AppColors.success, fontSize: 12)),
+            Text('Data Protection: Encrypted Local & Cloud Sync', style: const TextStyle(color: AppColors.success, fontSize: 12)),
           ],
         ),
         actions: [
