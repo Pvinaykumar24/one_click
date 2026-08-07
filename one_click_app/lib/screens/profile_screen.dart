@@ -8,6 +8,7 @@ import '../services/attendance_service.dart';
 import '../services/cgpa_service.dart';
 import '../services/money_manager_service.dart';
 import '../services/admin_service.dart';
+import '../services/app_update_service.dart';
 import '../core/notifications/local_notifications_service.dart';
 
 import '../core/widgets/grid_background.dart';
@@ -96,8 +97,14 @@ class ProfileScreen extends ConsumerWidget {
             if (isAdmin) ...[
               const SizedBox(height: 24),
               _buildMenuSection(
-                title: 'System Maintenance',
+                title: 'System Maintenance & OTA Live Updates',
                 items: [
+                  _buildMenuItem(
+                    context,
+                    Icons.system_update_alt,
+                    'Push Real-Time OTA Live Update & Announcement',
+                    onTap: () => _showPublishOtaDialog(context, ref),
+                  ),
                   _buildMenuItem(
                     context,
                     Icons.dangerous,
@@ -733,6 +740,116 @@ class ProfileScreen extends ConsumerWidget {
         );
       }
     }
+  }
+
+  void _showPublishOtaDialog(BuildContext context, WidgetRef ref) {
+    final versionController = TextEditingController(text: '1.2.0');
+    final buildController = TextEditingController(text: '105');
+    final notesController = TextEditingController(text: '⚡ Instant OTA Update: New Neo-Brutalism theme & GCR sync!');
+    final apkController = TextEditingController(text: 'https://github.com/Pvinaykumar24/one_click/releases');
+    final announcementController = TextEditingController(text: '📢 Mid-term Exam Schedule Published!');
+    bool isMandatory = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Colors.black, width: 2.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.system_update_alt, color: Colors.black),
+              SizedBox(width: 10),
+              Text('Push Real-Time OTA Update', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: versionController,
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(labelText: 'Target Version Name (e.g. 1.2.0)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: buildController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(labelText: 'Target Build Number (e.g. 105)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: notesController,
+                  maxLines: 2,
+                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'Release Notes'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: apkController,
+                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'APK / Bundle Download URL'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: announcementController,
+                  maxLines: 2,
+                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'Live Announcement Banner (Optional)'),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: isMandatory,
+                      activeColor: AppColors.neoPink,
+                      onChanged: (val) => setDialogState(() => isMandatory = val ?? false),
+                    ),
+                    const Text('Mandatory Update', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.neoYellow),
+              onPressed: () async {
+                final ver = versionController.text.trim();
+                final buildNum = int.tryParse(buildController.text.trim()) ?? 100;
+                final notes = notesController.text.trim();
+                final apk = apkController.text.trim();
+                final ann = announcementController.text.trim();
+
+                final success = await ref.read(appUpdateProvider.notifier).publishLiveUpdate(
+                  versionName: ver,
+                  buildNumber: buildNum,
+                  releaseNotes: notes,
+                  apkUrl: apk,
+                  announcement: ann,
+                  isMandatory: isMandatory,
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(success ? 'Real-Time OTA Update Published! 🚀' : 'Failed to publish OTA update')),
+                  );
+                }
+              },
+              child: const Text('Publish Real-Time OTA ⚡', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showAboutDialog(BuildContext context) {
