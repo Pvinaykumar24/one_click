@@ -25,9 +25,16 @@ class CgpaPreviewWidget extends ConsumerWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF1E293B), width: 3),
+              color: AppColors.neoPurple,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(4, 4),
+                  blurRadius: 0,
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -35,28 +42,31 @@ class CgpaPreviewWidget extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: const [
-                        Icon(
-                          Icons.school,
-                          color: AppColors.neonPink,
-                          size: 24,
-                          shadows: [Shadow(color: AppColors.neonPink, blurRadius: 10)],
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.black, width: 1.5),
+                          ),
+                          child: const Icon(Icons.school, color: Colors.black, size: 20),
                         ),
-                        SizedBox(width: 8),
-                        Text(
+                        const SizedBox(width: 10),
+                        const Text(
                           'CGPA Predictor',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
                           ),
                         ),
                       ],
                     ),
                     const Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppColors.textSecondary,
-                      size: 16,
+                      Icons.arrow_forward,
+                      color: Colors.white,
+                      size: 20,
                     ),
                   ],
                 ),
@@ -64,20 +74,18 @@ class CgpaPreviewWidget extends ConsumerWidget {
                 if (isEmpty)
                   Column(
                     children: [
-                      const Icon(Icons.analytics_outlined, color: AppColors.textSecondary, size: 32),
-                      const SizedBox(height: 8),
                       const Text(
                         'No subjects or semesters added yet',
-                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70),
                       ),
                       const SizedBox(height: 12),
-                      TextButton.icon(
+                      ElevatedButton.icon(
                         onPressed: () => context.push('/cgpa'),
-                        icon: const Icon(Icons.add, size: 16, color: AppColors.neonPink),
-                        label: const Text('Add Grades', style: TextStyle(color: AppColors.neonPink, fontSize: 13, fontWeight: FontWeight.bold)),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          backgroundColor: AppColors.neonPink.withValues(alpha: 0.1),
+                        icon: const Icon(Icons.add, size: 16, color: Colors.black),
+                        label: const Text('Add Grades', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.neoYellow,
+                          side: const BorderSide(color: Colors.black, width: 2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
@@ -87,11 +95,11 @@ class CgpaPreviewWidget extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildValueCard('Current', currentCGPA.toStringAsFixed(2), AppColors.neonPink),
-                      Container(width: 1, height: 40, color: const Color(0xFF334155)),
-                      _buildValueCard('Target', targetCGPA.toStringAsFixed(1), AppColors.neonCyan),
-                      Container(width: 1, height: 40, color: const Color(0xFF334155)),
-                      _buildValueCard('Predicted', predictedCGPA.toStringAsFixed(2), AppColors.neonYellow),
+                      _buildValueCard('Current', currentCGPA.toStringAsFixed(2), AppColors.neoYellow),
+                      Container(width: 2, height: 36, color: Colors.black),
+                      _buildValueCard('Target', targetCGPA.toStringAsFixed(1), AppColors.neoCyan),
+                      Container(width: 2, height: 36, color: Colors.black),
+                      _buildValueCard('Predicted', predictedCGPA.toStringAsFixed(2), AppColors.neoLime),
                     ],
                   )
               ],
@@ -103,25 +111,33 @@ class CgpaPreviewWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildValueCard(String label, String value, Color accentColor) {
+  Widget _buildValueCard(String label, String value, Color chipColor) {
     return Column(
       children: [
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: Colors.white70,
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: accentColor,
-            shadows: [Shadow(color: accentColor.withValues(alpha: 0.3), blurRadius: 8)],
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: chipColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.black, width: 1.5),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
           ),
         ),
       ],

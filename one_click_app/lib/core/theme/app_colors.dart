@@ -1,37 +1,45 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Ultra-deep obsidian black base inspired by modern high-contrast dark dashboards
-  static const Color background   = Color(0xFF07090E); // Deepest obsidian black
-  static const Color surface      = Color(0xFF0F131C); // Rich obsidian glass panel
-  static const Color surfaceLight = Color(0xFF161C28); // Elevated obsidian card
+  // Soft paper cream / off-white Neo-Brutalism canvas base
+  static const Color background   = Color(0xFFF5F2EB); 
+  static const Color surface      = Color(0xFFFFFFFF); 
+  static const Color surfaceLight = Color(0xFFFAF8F5); 
 
-  // Primary accent — Neon Electric Indigo
-  static const Color primary      = Color(0xFF6366F1); // Indigo-500
-  static const Color primaryDark  = Color(0xFF4F46E5); // Indigo-600
+  // Neo-Brutalism Accent Palette
+  static const Color neoYellow  = Color(0xFFFFE600); // Electric Sun Yellow
+  static const Color neoPink    = Color(0xFFFF2A85); // Hot Pink
+  static const Color neoCyan    = Color(0xFF00E5FF); // Electric Cyan
+  static const Color neoLime    = Color(0xFF00E676); // Vivid Lime Green
+  static const Color neoPurple  = Color(0xFF7C4DFF); // Electric Purple
+  static const Color neoOrange  = Color(0xFFFF6D00); // Electric Orange
 
-  // Neon accents
-  static const Color neonCyan    = Color(0xFF06B6D4); // Cyan-500
-  static const Color neonPurple  = Color(0xFFA855F7); // Purple-500
-  static const Color neonPink    = Color(0xFFEC4899); // Pink-500
-  static const Color neonRose    = Color(0xFFF43F5E); // Rose-500
-  static const Color neonYellow  = Color(0xFFF59E0B); // Amber-500
-  static const Color neonGreen   = Color(0xFF10B981); // Emerald-500
+  // Legacy mappings mapped to high-contrast vibrant tokens
+  static const Color primary      = Color(0xFF7C4DFF); // Electric Purple
+  static const Color primaryDark  = Color(0xFF6200EA); 
+
+  static const Color neonCyan    = Color(0xFF00E5FF); 
+  static const Color neonPurple  = Color(0xFF7C4DFF); 
+  static const Color neonPink    = Color(0xFFFF2A85); 
+  static const Color neonRose    = Color(0xFFFF1744); 
+  static const Color neonYellow  = Color(0xFFFFE600); 
+  static const Color neonGreen   = Color(0xFF00E676); 
 
   // Semantic colors
-  static const Color success = Color(0xFF10B981); // Emerald-500
-  static const Color warning = Color(0xFFF59E0B); // Amber-500
-  static const Color error   = Color(0xFFEF4444); // Red-500
-  static const Color info    = Color(0xFF3B82F6); // Blue-500
+  static const Color success = Color(0xFF00E676); 
+  static const Color warning = Color(0xFFFFE600); 
+  static const Color error   = Color(0xFFFF1744); 
+  static const Color info    = Color(0xFF2979FF); 
 
-  // Text
-  static const Color textPrimary   = Color(0xFFF8FAFC); // Slate-50
-  static const Color textSecondary = Color(0xFF94A3B8); // Slate-400
-  static const Color textDisabled  = Color(0xFF475569); // Slate-600
+  // High contrast Neo-Brutalism Text
+  static const Color textPrimary   = Color(0xFF000000); // Jet Black
+  static const Color textSecondary = Color(0xFF2D3748); // Dark Charcoal
+  static const Color textDisabled  = Color(0xFF718096); 
 
-  // Borders
-  static const Color border      = Color(0xFF1E2638); // Dark obsidian border
-  static const Color borderLight = Color(0xFF2A344B); // Subtle card outline
+  // Neo-Brutalist Thick Borders & Hard Shadows
+  static const Color border      = Color(0xFF000000); // Solid Black Outline
+  static const Color borderLight = Color(0xFF000000); 
+  static const Color shadow      = Color(0xFF000000); // Solid Hard Shadow
 
   AppColors._();
 }

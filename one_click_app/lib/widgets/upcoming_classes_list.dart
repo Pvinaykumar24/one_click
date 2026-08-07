@@ -31,17 +31,17 @@ class UpcomingClassesList extends ConsumerWidget {
                     'Upcoming $titleDay',
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
                     ),
                   ),
                   TextButton(
                     onPressed: () => context.go('/schedule'),
                     child: const Text(
-                      'View All',
+                      'View All →',
                       style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -49,12 +49,12 @@ class UpcomingClassesList extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 120,
+              height: 124,
               child: classes.isEmpty
                   ? const Center(
                       child: Text(
                         'No upcoming classes.',
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold),
                       ),
                     )
                   : ListView.builder(
@@ -68,7 +68,7 @@ class UpcomingClassesList extends ConsumerWidget {
                           title: cls.subject,
                           location: cls.room,
                           icon: cls.type == 'Lab' ? Icons.computer : Icons.book,
-                          iconColor: cls.type == 'Lab' ? AppColors.neonCyan : const Color(0xFFF97316),
+                          cardColor: index % 2 == 0 ? Colors.white : AppColors.neoYellow,
                         );
                       },
                     ),
@@ -85,16 +85,23 @@ class UpcomingClassesList extends ConsumerWidget {
     required String title,
     required String location,
     required IconData icon,
-    required Color iconColor,
+    required Color cardColor,
   }) {
     return Container(
-      width: 250,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(16),
+      width: 240,
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.5), // slate-900/50
-        border: Border.all(color: const Color(0xFF1E293B), width: 3), // slate-800
-        borderRadius: BorderRadius.circular(20),
+        color: cardColor,
+        border: Border.all(color: Colors.black, width: 2.5),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(3, 3),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,15 +109,16 @@ class UpcomingClassesList extends ConsumerWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: AppColors.neoPink,
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 1.5),
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+                child: Icon(icon, color: Colors.white, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,8 +127,8 @@ class UpcomingClassesList extends ConsumerWidget {
                       title,
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -129,8 +137,9 @@ class UpcomingClassesList extends ConsumerWidget {
                     Text(
                       location,
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -140,13 +149,21 @@ class UpcomingClassesList extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            time,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.black, width: 1.5),
+            ),
+            child: Text(
+              time,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
             ),
           ),
         ],

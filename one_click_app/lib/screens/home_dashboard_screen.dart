@@ -22,6 +22,7 @@ class HomeDashboardScreen extends ConsumerWidget {
     final timetableNotifier = ref.read(timetableProvider.notifier);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -34,7 +35,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                   children: [
                     // Header greeting with Date
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -42,27 +43,32 @@ class HomeDashboardScreen extends ConsumerWidget {
                             '$dayName, $monthName ${now.day}',
                             style: const TextStyle(
                               fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -0.5,
                             ),
                           ),
                           const SizedBox(height: 4),
                           timetableState.maybeWhen(
                             data: (slots) {
                               int todayClassCount = timetableNotifier.getClassesForDay(now.weekday).length;
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    todayClassCount > 0 
-                                        ? '$todayClassCount classes today'
-                                        : 'No classes today 🎉',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.textSecondary,
-                                    ),
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.black, width: 1.5),
+                                ),
+                                child: Text(
+                                  todayClassCount > 0 
+                                      ? '⚡ $todayClassCount classes scheduled today'
+                                      : '🎉 No classes today!',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.black,
                                   ),
-                                ],
+                                ),
                               );
                             },
                             orElse: () => const SizedBox.shrink(),
@@ -100,55 +106,34 @@ class HomeDashboardScreen extends ConsumerWidget {
     );
   }
 
-  String _getDayName(int day) {
-    switch (day) {
-      case 1:
-        return 'Monday';
-      case 2:
-        return 'Tuesday';
-      case 3:
-        return 'Wednesday';
-      case 4:
-        return 'Thursday';
-      case 5:
-        return 'Friday';
-      case 6:
-        return 'Saturday';
-      case 7:
-        return 'Sunday';
-      default:
-        return '';
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case DateTime.monday: return 'Monday';
+      case DateTime.tuesday: return 'Tuesday';
+      case DateTime.wednesday: return 'Wednesday';
+      case DateTime.thursday: return 'Thursday';
+      case DateTime.friday: return 'Friday';
+      case DateTime.saturday: return 'Saturday';
+      case DateTime.sunday: return 'Sunday';
+      default: return '';
     }
   }
 
   String _getMonthName(int month) {
     switch (month) {
-      case 1:
-        return 'January';
-      case 2:
-        return 'February';
-      case 3:
-        return 'March';
-      case 4:
-        return 'April';
-      case 5:
-        return 'May';
-      case 6:
-        return 'June';
-      case 7:
-        return 'July';
-      case 8:
-        return 'August';
-      case 9:
-        return 'September';
-      case 10:
-        return 'October';
-      case 11:
-        return 'November';
-      case 12:
-        return 'December';
-      default:
-        return '';
+      case 1: return 'Jan';
+      case 2: return 'Feb';
+      case 3: return 'Mar';
+      case 4: return 'Apr';
+      case 5: return 'May';
+      case 6: return 'Jun';
+      case 7: return 'Jul';
+      case 8: return 'Aug';
+      case 9: return 'Sep';
+      case 10: return 'Oct';
+      case 11: return 'Nov';
+      case 12: return 'Dec';
+      default: return '';
     }
   }
 }

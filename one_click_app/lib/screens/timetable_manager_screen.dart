@@ -403,8 +403,8 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
 
   Widget _buildDaySelectorRow() {
     return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      height: 56,
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -418,17 +418,24 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16),
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFF1E2638)),
+                color: isSelected ? AppColors.neoYellow : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 2),
+                boxShadow: isSelected ? const [
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset(2, 2),
+                    blurRadius: 0,
+                  ),
+                ] : null,
               ),
               alignment: Alignment.center,
               child: Text(
                 _dayNames[index],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -525,46 +532,54 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
       itemBuilder: (context, index) {
         final slot = daySlots[index];
         final isLab = slot.type == 'Lab';
-        final color = isLab ? AppColors.neonCyan : AppColors.primary;
+        final cardColor = isLab ? AppColors.neoCyan : Colors.white;
 
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          color: const Color(0xFF0F131C),
-          shape: RoundedRectangleBorder(
+          decoration: BoxDecoration(
+            color: cardColor,
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: color.withValues(alpha: 0.3)),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(3, 3),
+                blurRadius: 0,
+              ),
+            ],
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: isLab ? AppColors.neoPink : AppColors.neoYellow,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 1.5),
               ),
-              child: Icon(isLab ? Icons.computer : Icons.book, color: color),
+              child: Icon(isLab ? Icons.computer : Icons.book, color: isLab ? Colors.white : Colors.black),
             ),
             title: Text(
               slot.subject,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black, fontSize: 16),
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
                 '${slot.start} - ${slot.end} • ${slot.room} • ${slot.credits} Credits',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withValues(alpha: 0.3)),
+                border: Border.all(color: Colors.black, width: 1.5),
               ),
               child: Text(
                 slot.type,
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
               ),
             ),
             onTap: () => _showAddEditSlotModal(slotToEdit: slot),

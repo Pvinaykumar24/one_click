@@ -228,25 +228,34 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     final reqText = '${requiredPct.toStringAsFixed(0)}% req.';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.9),
-        border: const Border(bottom: BorderSide(color: Color(0xFF1E2638))),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.black, width: 2.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                onPressed: () => Navigator.of(context).pop(),
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.neoYellow,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black, width: 2),
+                  ),
+                  child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Attendance Tracker', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                  Text('Audited Scheduled Sessions & Emergency Classes', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text('Attendance Tracker', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
+                  Text('Audited Scheduled Sessions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
                 ],
               ),
             ],
@@ -256,15 +265,15 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                color: AppColors.neoCyan,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 1.5),
               ),
               child: Row(
                 children: [
-                  Text(reqText, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text(reqText, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black)),
                   const SizedBox(width: 4),
-                  const Icon(Icons.tune, size: 14, color: AppColors.primary),
+                  const Icon(Icons.tune, size: 14, color: Colors.black),
                 ],
               ),
             ),
@@ -279,15 +288,22 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     double requiredPct = ref.watch(attendanceThresholdProvider);
     double difference = overallPct - requiredPct;
     String safeMsg = difference >= 0
-        ? 'Safe Zone: ${difference.toStringAsFixed(1)}% above required threshold'
-        : 'Warning Zone: ${(-difference).toStringAsFixed(1)}% below required limit';
+        ? 'Safe Zone: ${difference.toStringAsFixed(1)}% above threshold'
+        : 'Warning Zone: ${(-difference).toStringAsFixed(1)}% below limit';
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F131C),
-        border: Border.all(color: const Color(0xFF1E2638)),
+        color: Colors.white,
+        border: Border.all(color: Colors.black, width: 2.5),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -296,18 +312,18 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                const CircularProgressIndicator(value: 1.0, strokeWidth: 8, color: Color(0xFF161C28)),
+                const CircularProgressIndicator(value: 1.0, strokeWidth: 10, color: Color(0xFFE2E8F0)),
                 CircularProgressIndicator(
                   value: overallPct / 100,
-                  strokeWidth: 8,
-                  color: difference >= 0 ? AppColors.primary : AppColors.error,
+                  strokeWidth: 10,
+                  color: difference >= 0 ? AppColors.neoLime : AppColors.neoPink,
                   strokeCap: StrokeCap.round,
                 ),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('${overallPct.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    const Text('OVERALL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 2.0)),
+                    Text('${overallPct.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black)),
+                    const Text('OVERALL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black54, letterSpacing: 2.0)),
                   ],
                 ),
               ],
@@ -317,10 +333,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: (difference >= 0 ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: difference >= 0 ? AppColors.neoLime : AppColors.neoPink,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black, width: 1.5),
             ),
-            child: Text(safeMsg, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: difference >= 0 ? AppColors.success : AppColors.error)),
+            child: Text(safeMsg, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: difference >= 0 ? Colors.black : Colors.white)),
           ),
         ],
       ),

@@ -76,9 +76,16 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F131C),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1E2638), width: 1.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -87,21 +94,22 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.neoLime,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
-                child: const Icon(Icons.free_breakfast, color: AppColors.success, size: 28),
+                child: const Icon(Icons.free_breakfast, color: Colors.black, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('No Class Right Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    const Text('No Class Right Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
                     const SizedBox(height: 4),
                     Text(
                       'Next: $nextInfo ($nextDayLabel)',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -113,11 +121,11 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => context.go('/schedule'),
-              icon: const Icon(Icons.calendar_today, size: 16),
-              label: Text('View $nextDayLabel Schedule'),
+              icon: const Icon(Icons.calendar_today, size: 16, color: Colors.black),
+              label: Text('View $nextDayLabel Schedule', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                backgroundColor: AppColors.neoCyan,
+                side: const BorderSide(color: Colors.black, width: 2),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -136,29 +144,20 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
     String end = liveClass.end;
     String slot = '$start-$end';
 
-    // Watch attendance records to get persistent live state
     final currentStatus = ref.read(attendanceProvider.notifier).getSessionStatus(subjectName, now, slot);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.25),
-            const Color(0xFF0F131C),
-            AppColors.background,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5),
-        boxShadow: [
+        color: AppColors.neoCyan,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            blurRadius: 16,
-            spreadRadius: -2,
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
           ),
         ],
       ),
@@ -171,8 +170,8 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.15),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  color: AppColors.neoPink,
+                  border: Border.all(color: Colors.black, width: 2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -185,27 +184,35 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
                           opacity: _pulseAnimation,
                           child: Container(
                             width: 12, height: 12,
-                            decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.75), shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                           ),
                         ),
-                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle)),
+                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
                       ],
                     ),
                     const SizedBox(width: 6),
-                    const Text('LIVE NOW', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.error, letterSpacing: 1.2)),
+                    const Text('LIVE NOW', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.2)),
                   ],
                 ),
               ),
-              Text(
-                'Room $room • $start - $end',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.black, width: 1.5),
+                ),
+                child: Text(
+                  'Room $room • $start - $end',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(subjectName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text(subjectName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black)),
           const SizedBox(height: 4),
-          Text(type, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          Text(type, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
           const SizedBox(height: 20),
 
           // Dual Action Attendance Buttons (Present & Absent)
@@ -221,14 +228,14 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
                       );
                     }
                   },
-                  icon: Icon(currentStatus == 'present' ? Icons.check_circle : Icons.how_to_reg, size: 16),
-                  label: Text(currentStatus == 'present' ? 'Attending ✓' : 'Mark Present'),
+                  icon: Icon(currentStatus == 'present' ? Icons.check_circle : Icons.how_to_reg, size: 16, color: Colors.black),
+                  label: Text(currentStatus == 'present' ? 'Attending ✓' : 'Mark Present', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: currentStatus == 'present' ? AppColors.success : AppColors.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: currentStatus == 'present' ? AppColors.neoLime : AppColors.neoYellow,
+                    elevation: 0,
+                    side: const BorderSide(color: Colors.black, width: 2),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 4,
                   ),
                 ),
               ),
@@ -243,12 +250,11 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
                       );
                     }
                   },
-                  icon: Icon(currentStatus == 'absent' ? Icons.cancel : Icons.event_busy, size: 16),
-                  label: Text(currentStatus == 'absent' ? 'Absent ❌' : 'Mark Absent'),
+                  icon: Icon(currentStatus == 'absent' ? Icons.cancel : Icons.event_busy, size: 16, color: Colors.white),
+                  label: Text(currentStatus == 'absent' ? 'Absent ❌' : 'Mark Absent', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: currentStatus == 'absent' ? AppColors.error : Colors.white70,
-                    side: BorderSide(color: currentStatus == 'absent' ? AppColors.error : AppColors.error.withValues(alpha: 0.4)),
-                    backgroundColor: currentStatus == 'absent' ? AppColors.error.withValues(alpha: 0.15) : Colors.transparent,
+                    backgroundColor: currentStatus == 'absent' ? Colors.black : AppColors.neoPink,
+                    side: const BorderSide(color: Colors.black, width: 2),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),

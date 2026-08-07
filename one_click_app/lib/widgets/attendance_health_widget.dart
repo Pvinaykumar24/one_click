@@ -14,15 +14,24 @@ class AttendanceHealthWidget extends ConsumerWidget {
 
     return attendanceState.maybeWhen(
       data: (records) {
+        final overallPct = attendanceNotifier.getOverallPercentage();
+
         return GestureDetector(
           onTap: () => context.push('/attendance'),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF1E293B), width: 3),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(4, 4),
+                  blurRadius: 0,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,52 +40,68 @@ class AttendanceHealthWidget extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: const [
-                        Icon(Icons.analytics, color: AppColors.neonCyan, size: 22,
-                            shadows: [Shadow(color: AppColors.neonCyan, blurRadius: 10)]),
-                        SizedBox(width: 8),
-                        Text('Attendance Health', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.neoLime,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.black, width: 1.5),
+                          ),
+                          child: const Icon(Icons.analytics, color: Colors.black, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Attendance Health',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
+                        ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.neoYellow,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.black, width: 1.5),
                       ),
                       child: Text(
-                        '${attendanceNotifier.getOverallPercentage().toStringAsFixed(1)}% overall',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        '${overallPct.toStringAsFixed(1)}% overall',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Per-course attendance bars
                 ...attendanceNotifier.subjects.take(5).map((sub) {
                   var info = attendanceNotifier.getSubjectInfo(sub);
                   double pct = info['currentPercentage'];
                   int safeBunks = info['safeBunksLeft'];
                   double requiredPct = attendanceNotifier.requiredPercentage;
                   bool isWarning = pct < requiredPct;
-                  Color barColor = pct >= requiredPct ? AppColors.success 
-                      : pct >= (requiredPct - 10.0) ? const Color(0xFFFBBF24) 
-                      : AppColors.error;
+                  Color barColor = pct >= requiredPct ? AppColors.neoLime 
+                      : pct >= (requiredPct - 10.0) ? AppColors.neoYellow 
+                      : AppColors.neoPink;
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 48,
-                          child: Text(sub, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                          width: 54,
+                          child: Text(
+                            sub,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         Expanded(
                           child: Container(
-                            height: 8,
+                            height: 10,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(4),
+                              color: const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: Colors.black, width: 1),
                             ),
                             alignment: Alignment.centerLeft,
                             child: FractionallySizedBox(
@@ -84,8 +109,7 @@ class AttendanceHealthWidget extends ConsumerWidget {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: barColor,
-                                  borderRadius: BorderRadius.circular(4),
-                                  boxShadow: [BoxShadow(color: barColor.withValues(alpha: 0.3), offset: Offset(2, 2), blurRadius: 0)],
+                                  borderRadius: BorderRadius.circular(5),
                                 ),
                               ),
                             ),
@@ -94,26 +118,39 @@ class AttendanceHealthWidget extends ConsumerWidget {
                         const SizedBox(width: 8),
                         SizedBox(
                           width: 36,
-                          child: Text('${pct.toStringAsFixed(0)}%', 
+                          child: Text(
+                            '${pct.toStringAsFixed(0)}%', 
                             textAlign: TextAlign.right,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: barColor)),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
+                          ),
                         ),
                         const SizedBox(width: 6),
-                        SizedBox(
-                          width: 50,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isWarning ? AppColors.neoPink : Colors.white,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.black, width: 1),
+                          ),
                           child: Text(
-                            isWarning ? '⚠ Low' : '✓ $safeBunks left',
-                            style: TextStyle(fontSize: 9, color: isWarning ? AppColors.error : AppColors.textSecondary),
+                            isWarning ? '⚠ Low' : '✓ $safeBunks',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: isWarning ? Colors.white : Colors.black,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   );
                 }),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const Center(
-                  child: Text('Tap to view full details for each course →', 
-                    style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                  child: Text(
+                    'Tap to view full course details →',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54),
+                  ),
                 ),
               ],
             ),

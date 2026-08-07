@@ -299,72 +299,81 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
 
   Widget _buildHeader(MessState messState) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.8),
-        border: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.black, width: 2.5)),
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1E293B),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.neoYellow,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black, width: 2),
                   ),
+                  child: const Icon(Icons.arrow_back, color: Colors.black),
                 ),
-                Column(
-                  children: [
-                    Text(
-                      _isFullWeekView ? 'Full Week Menu' : 'Mess Menu',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+              ),
+              Column(
+                children: [
+                  Text(
+                    _isFullWeekView ? 'Full Week Menu' : 'Mess Menu',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
                     ),
-                    Text(
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.neoPink,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.black, width: 1),
+                    ),
+                    child: Text(
                       messState.isEvenWeek ? 'EVEN WEEK' : 'ODD WEEK',
                       style: const TextStyle(
                         fontSize: 10,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
                       ),
                     ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => ref.read(messProvider.notifier).toggleWeek(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                    ),
-                    child: const Icon(Icons.swap_horiz, color: AppColors.primary, size: 20),
                   ),
+                ],
+              ),
+              GestureDetector(
+                onTap: () => ref.read(messProvider.notifier).toggleWeek(),
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.neoCyan,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black, width: 2),
+                  ),
+                  child: const Icon(Icons.swap_horiz, color: Colors.black, size: 22),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          if (!_isFullWeekView && messState.weeklyMenu.isNotEmpty)
+          if (!_isFullWeekView && messState.weeklyMenu.isNotEmpty) ...[
+            const SizedBox(height: 12),
             SizedBox(
-              height: 50,
+              height: 44,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 itemCount: _daysOfWeek.length,
                 itemBuilder: (context, index) {
                   bool isSelected = index == _selectedDayIndex;
@@ -374,19 +383,17 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
-                        ),
+                        color: isSelected ? AppColors.neoYellow : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.black, width: 2),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         _daysOfWeek[index].substring(0, 3),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -394,7 +401,7 @@ class _MessMenuScreenState extends ConsumerState<MessMenuScreen> {
                 },
               ),
             ),
-          const SizedBox(height: 12),
+          ],
         ],
       ),
     );
