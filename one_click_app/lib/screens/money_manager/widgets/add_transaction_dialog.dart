@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,13 +14,23 @@ class AddTransactionDialog extends ConsumerStatefulWidget {
 }
 
 class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
-  String _title = '';
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _receiptUrlController = TextEditingController();
+
   String _category = 'Food';
-  double _amount = 0.0;
   bool _isExpense = true;
-  String _receiptUrl = '';
+  DateTime _selectedDate = DateTime.now();
   XFile? _pickedImage;
   bool _isUploading = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _amountController.dispose();
+    _receiptUrlController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
@@ -31,6 +41,60 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       }
     } catch (e) {
       debugPrint("Error picking receipt photo: $e");
+    }
+  }
+
+  Future<void> _submitTransaction() async {
+    final title = _titleController.text.trim();
+    final rawAmount = _amountController.text.trim();
+    final amount = double.tryParse(rawAmount) ?? 0.0;
+
+    if (title.isEmpty || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please provide a valid title and amount greater than ₹0')),
+      );
+      return;
+    }
+
+    setState(() => _isUploading = true);
+    final txId = DateTime.now().millisecondsSinceEpoch.toString();
+    String? finalReceiptUrl = _receiptUrlController.text.trim().isNotEmpty ? _receiptUrlController.text.trim() : null;
+
+    if (_pickedImage != null) {
+      try {
+        final uploaded = await ref.read(moneyManagerProvider.notifier).uploadReceiptImage(_pickedImage!, txId);
+        if (uploaded != null) {
+          finalReceiptUrl = uploaded;
+        }
+      } catch (e) {
+        debugPrint("Image upload error caught: $e");
+      }
+    }
+
+    final success = await ref.read(moneyManagerProvider.notifier).addTransaction(
+      Transaction(
+        id: txId,
+        title: title,
+        category: _category,
+        amount: amount,
+        date: _selectedDate,
+        isExpense: _isExpense,
+        receiptUrl: finalReceiptUrl,
+      ),
+    );
+
+    if (mounted) {
+      setState(() => _isUploading = false);
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Transaction "$title" saved successfully! ✅')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save transaction to cloud. Please try again.')),
+        );
+      }
     }
   }
 
@@ -49,22 +113,26 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
+              controller: _titleController,
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: const InputDecoration(
                 labelText: 'Title',
                 labelStyle: TextStyle(color: AppColors.textSecondary),
+                hintText: 'e.g. Lunch, Bus Pass, Salary',
+                hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
               ),
-              onChanged: (val) => _title = val,
             ),
             const SizedBox(height: 12),
             TextField(
-              keyboardType: TextInputType.number,
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: const InputDecoration(
                 labelText: 'Amount (₹)',
                 labelStyle: TextStyle(color: AppColors.textSecondary),
+                hintText: 'e.g. 250',
+                hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
               ),
-              onChanged: (val) => _amount = double.tryParse(val) ?? 0,
             ),
             const SizedBox(height: 16),
             Row(
@@ -114,11 +182,41 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         child: Text(value),
                       );
                     }).toList(),
-                    onChanged: (val) => setState(() => _category = val!),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _category = val);
+                    },
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
+            // Date Picker Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Transaction Date:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                TextButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setState(() => _selectedDate = picked);
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_month, size: 16, color: AppColors.primary),
+                  label: Text(
+                    '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 16),
             const Text(
               'Attach Receipt Photo:',
@@ -192,13 +290,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             ],
             const SizedBox(height: 12),
             TextField(
+              controller: _receiptUrlController,
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: const InputDecoration(
                 labelText: 'Receipt URL / Note (Optional)',
                 labelStyle: TextStyle(color: AppColors.textSecondary),
                 prefixIcon: Icon(Icons.receipt_long, color: AppColors.textSecondary, size: 20),
               ),
-              onChanged: (val) => _receiptUrl = val.trim(),
             ),
           ],
         ),
@@ -216,47 +314,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             backgroundColor: AppColors.primary,
             minimumSize: const Size(80, 38),
           ),
-          onPressed: _isUploading
-              ? null
-              : () async {
-                  if (_title.isNotEmpty && _amount > 0) {
-                    setState(() => _isUploading = true);
-                    final txId = DateTime.now().millisecondsSinceEpoch.toString();
-                    String? finalReceiptUrl = _receiptUrl.isNotEmpty ? _receiptUrl : null;
-
-                    if (_pickedImage != null) {
-                      final uploaded = await ref.read(moneyManagerProvider.notifier).uploadReceiptImage(_pickedImage!, txId);
-                      if (uploaded != null) {
-                        finalReceiptUrl = uploaded;
-                      }
-                    }
-
-                    await ref.read(moneyManagerProvider.notifier).addTransaction(
-                      Transaction(
-                        id: txId,
-                        title: _title,
-                        category: _category,
-                        amount: _amount,
-                        date: DateTime.now(),
-                        isExpense: _isExpense,
-                        receiptUrl: finalReceiptUrl,
-                        receiptImageUrl: finalReceiptUrl,
-                      ),
-                    );
-
-                    if (context.mounted) {
-                      setState(() => _isUploading = false);
-                      Navigator.pop(context);
-                    }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please provide a valid title and amount > 0')),
-                    );
-                  }
-                },
+          onPressed: _isUploading ? null : _submitTransaction,
           child: _isUploading
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Add', style: TextStyle(color: Colors.white)),
+              : const Text('Add Entry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

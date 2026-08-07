@@ -42,22 +42,20 @@ void main() {
       expect(legacyTx.receiptUrl, isNull);
     });
 
-    test('Transaction model cleanly synchronizes receiptImageUrl and receiptUrl for mutual compatibility', () {
+    test('Transaction model cleanly serializes receiptUrl', () {
       final tx = Transaction(
         id: 'tx_img',
         title: 'Lunch receipt photo',
         category: 'Food',
         amount: 250.0,
         date: sampleDate,
-        receiptImageUrl: 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg',
+        receiptUrl: 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg',
       );
 
       final map = tx.toMap();
-      expect(map['receiptImageUrl'], 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg');
       expect(map['receiptUrl'], 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg');
 
       final fromMap = Transaction.fromMap(map, 'tx_img');
-      expect(fromMap.receiptImageUrl, 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg');
       expect(fromMap.receiptUrl, 'https://firebasestorage.googleapis.com/v0/b/one-click/receipts/img.jpg');
     });
 

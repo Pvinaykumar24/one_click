@@ -9,6 +9,34 @@ class TransactionList extends ConsumerWidget {
 
   const TransactionList({super.key, required this.state});
 
+  void _confirmDelete(BuildContext context, WidgetRef ref, String txId, String title) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F131C),
+        title: const Text('Delete Transaction', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "$title"?', style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              ref.read(moneyManagerProvider.notifier).deleteTransaction(txId);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Deleted "$title"')),
+              );
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
@@ -48,18 +76,6 @@ class TransactionList extends ConsumerWidget {
                     icon: const Icon(Icons.file_download_outlined, size: 15),
                     label: const Text('Export CSV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'See All',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
               ],
             ),
           ],
@@ -70,12 +86,12 @@ class TransactionList extends ConsumerWidget {
             child: Padding(
               padding: EdgeInsets.all(24.0),
               child: Text(
-                'No recent transactions yet',
+                'No transactions logged yet',
                 style: TextStyle(color: AppColors.textSecondary),
               ),
             ),
           ),
-        ...state.transactions.take(10).map((tx) {
+        ...state.transactions.take(15).map((tx) {
           IconData icon = Icons.payments;
           if (tx.category == 'Food') icon = Icons.restaurant;
           if (tx.category == 'Supplies') icon = Icons.shopping_bag;
@@ -91,11 +107,11 @@ class TransactionList extends ConsumerWidget {
             iconBg: (tx.isExpense ? AppColors.error : AppColors.success).withValues(alpha: 0.2),
             title: tx.title,
             category: tx.category,
-            time: '${tx.date.day}/${tx.date.month} ${tx.date.hour}:${tx.date.minute.toString().padLeft(2, '0')}',
+            time: '${tx.date.day}/${tx.date.month}/${tx.date.year}',
             amount: '${tx.isExpense ? '-' : '+'}₹${tx.amount.toStringAsFixed(0)}',
             amountColor: tx.isExpense ? AppColors.error : AppColors.success,
             txId: tx.id,
-            receiptUrl: tx.receiptImageUrl ?? tx.receiptUrl,
+            receiptUrl: tx.receiptUrl,
           );
         }),
       ],
@@ -120,15 +136,15 @@ class TransactionList extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.4),
-        border: Border.all(color: const Color(0xFF1E293B)),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF0F131C),
+        border: Border.all(color: const Color(0xFF1E2638)),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: iconBg,
               borderRadius: BorderRadius.circular(10),
@@ -161,7 +177,7 @@ class TransactionList extends ConsumerWidget {
           ),
           if (receiptUrl != null && receiptUrl.isNotEmpty) ...[
             Tooltip(
-              message: 'View Attached Receipt',
+              message: 'View Receipt',
               child: InkWell(
                 onTap: () => _showReceiptDialog(context, title, receiptUrl),
                 borderRadius: BorderRadius.circular(8),
@@ -201,9 +217,7 @@ class TransactionList extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: () {
-              ref.read(moneyManagerProvider.notifier).deleteTransaction(txId);
-            },
+            onPressed: () => _confirmDelete(context, ref, txId, title),
           ),
         ],
       ),
@@ -214,7 +228,7 @@ class TransactionList extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: const Color(0xFF0F131C),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [

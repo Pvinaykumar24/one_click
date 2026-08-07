@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -18,7 +19,6 @@ class Transaction {
   final DateTime date;
   final bool isExpense;
   final String? receiptUrl;
-  final String? receiptImageUrl;
 
   Transaction({
     required this.id,
@@ -28,7 +28,6 @@ class Transaction {
     required this.date,
     this.isExpense = true,
     this.receiptUrl,
-    this.receiptImageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -39,8 +38,7 @@ class Transaction {
       'amount': amount,
       'date': Timestamp.fromDate(date),
       'isExpense': isExpense,
-      'receiptUrl': receiptUrl ?? receiptImageUrl,
-      'receiptImageUrl': receiptImageUrl ?? receiptUrl,
+      'receiptUrl': receiptUrl,
     };
   }
 
@@ -48,12 +46,11 @@ class Transaction {
     return Transaction(
       id: map['id'] ?? docId,
       title: map['title'] ?? '',
-      category: map['category'] ?? '',
+      category: map['category'] ?? 'Other',
       amount: (map['amount'] ?? 0.0).toDouble(),
-      date: (map['date'] as Timestamp).toDate(),
+      date: map['date'] is Timestamp ? (map['date'] as Timestamp).toDate() : DateTime.now(),
       isExpense: map['isExpense'] ?? true,
       receiptUrl: map['receiptUrl'] as String? ?? map['receiptImageUrl'] as String?,
-      receiptImageUrl: map['receiptImageUrl'] as String? ?? map['receiptUrl'] as String?,
     );
   }
 }
@@ -229,15 +226,21 @@ class MoneyManagerNotifier extends StreamNotifier<MoneyManagerState> {
 
   MoneyManagerState get currentState => state.valueOrNull ?? MoneyManagerState(transactions: []);
 
-  Future<void> addTransaction(Transaction tx) async {
+  Future<bool> addTransaction(Transaction tx) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+    if (user == null) return false;
+    try {
       await _db
           .collection('users')
           .doc(user.uid)
           .collection('finances')
           .doc(tx.id)
           .set(tx.toMap());
+      debugPrint("✅ [FINANCE] Transaction saved successfully: ${tx.id}");
+      return true;
+    } catch (e) {
+      debugPrint("❌ [FINANCE] Error saving transaction: $e");
+      return false;
     }
   }
 
@@ -307,7 +310,7 @@ class MoneyManagerNotifier extends StreamNotifier<MoneyManagerState> {
       await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
       return await ref.getDownloadURL();
     } catch (e) {
-      debugPrint('Error uploading receipt image to Firebase Storage: $e');
+      debugPrint('⚠️ Error uploading receipt image to Firebase Storage: $e');
       return null;
     }
   }
