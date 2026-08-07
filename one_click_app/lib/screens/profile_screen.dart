@@ -863,6 +863,30 @@ class ProfileScreen extends ConsumerWidget {
                     }).toList(),
                   ),
                 ],
+                const SizedBox(height: 16),
+                const Divider(color: Color(0xFF1E293B)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () async {
+                      await LocalNotificationsService.sendTestNotification();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Test notification sent! Check your system notification bar 🔔')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.notifications_active, color: Colors.white, size: 18),
+                    label: const Text('Test System Notifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ],
             ),
             actions: [

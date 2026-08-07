@@ -270,7 +270,7 @@ class LocalNotificationsService {
       channelDescription: _channelDescription,
       importance: Importance.max,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@mipmap/launcher_icon',
     );
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -293,6 +293,15 @@ class LocalNotificationsService {
     } catch (e) {
       debugPrint('❌ [NOTIFICATIONS] Failed to show instant notification #$id: $e');
     }
+  }
+
+  /// Triggers an immediate test notification for system bar verification.
+  static Future<void> sendTestNotification() async {
+    await showInstantNotification(
+      id: 99999,
+      title: '🔔 One Click Notification Test',
+      body: 'Notifications are active and working smoothly in your system bar!',
+    );
   }
 }
 
