@@ -8,24 +8,25 @@ class LiveUpdateBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final updateState = ref.watch(appUpdateProvider).valueOrNull;
-    if (updateState == null || updateState.manifest == null) {
-      return const SizedBox.shrink();
-    }
+    final asyncUpdateState = ref.watch(appUpdateProvider);
 
-    final manifest = updateState.manifest!;
-    final hasAnnouncement = manifest.liveAnnouncement.trim().isNotEmpty;
-    final hasUpdate = updateState.hasUpdateAvailable;
+    return asyncUpdateState.when(
+      data: (updateState) {
+        if (updateState.manifest == null) return const SizedBox.shrink();
 
-    if (!hasAnnouncement && !hasUpdate) {
-      return const SizedBox.shrink();
-    }
+        final manifest = updateState.manifest!;
+        final hasAnnouncement = manifest.liveAnnouncement.trim().isNotEmpty;
+        final hasUpdate = updateState.hasUpdateAvailable;
 
-    return Column(
-      children: [
-        // 1. Live Real-Time Announcement Banner
-        if (hasAnnouncement)
-          Container(
+        if (!hasAnnouncement && !hasUpdate) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          children: [
+            // 1. Live Real-Time Announcement Banner
+            if (hasAnnouncement)
+              Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -171,7 +172,11 @@ class LiveUpdateBanner extends ConsumerWidget {
               ],
             ),
           ),
-      ],
-    );
-  }
+        ],
+      );
+    },
+    loading: () => const SizedBox.shrink(),
+    error: (e, st) => const SizedBox.shrink(),
+  );
+}
 }

@@ -34,8 +34,7 @@ service cloud.firestore {
 
     // Match app_config collection for In-App OTA Live Updates & Remote Config
     match /app_config/{document=**} {
-      allow read: if true; // Allow all students to stream real-time OTA updates & announcements
-      allow write: if isAuthenticated(); // Allow authenticated users / admins to publish updates
+      allow read, write: if true; // 100% open for real-time OTA updates & announcements
     }
 
     // Match users collection

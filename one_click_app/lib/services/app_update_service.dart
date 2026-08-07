@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/auth_provider.dart';
 
 class AppUpdateManifest {
   final String versionName;
@@ -76,39 +75,31 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
 
   @override
   Stream<AppUpdateState> build() {
-    final authState = ref.watch(authProvider);
+    return _db
+        .collection('app_config')
+        .doc('latest')
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists || doc.data() == null) {
+        return AppUpdateState(
+          currentVersion: installedVersion,
+          currentBuildNumber: installedBuild,
+        );
+      }
 
-    return authState.when(
-      data: (user) {
-        return _db
-            .collection('app_config')
-            .doc('latest')
-            .snapshots()
-            .map((doc) {
-          if (!doc.exists || doc.data() == null) {
-            return AppUpdateState(
-              currentVersion: installedVersion,
-              currentBuildNumber: installedBuild,
-            );
-          }
+      final manifest = AppUpdateManifest.fromMap(doc.data()!);
+      bool hasUpdate = manifest.buildNumber > installedBuild;
 
-          final manifest = AppUpdateManifest.fromMap(doc.data()!);
-          bool hasUpdate = manifest.buildNumber > installedBuild;
-
-          return AppUpdateState(
-            manifest: manifest,
-            hasUpdateAvailable: hasUpdate,
-            currentVersion: installedVersion,
-            currentBuildNumber: installedBuild,
-          );
-        });
-      },
-      loading: () => const Stream.empty(),
-      error: (e, st) {
-        debugPrint('Error streaming app_config: $e');
-        return Stream.value(AppUpdateState());
-      },
-    );
+      return AppUpdateState(
+        manifest: manifest,
+        hasUpdateAvailable: hasUpdate,
+        currentVersion: installedVersion,
+        currentBuildNumber: installedBuild,
+      );
+    }).handleError((e, st) {
+      debugPrint('Error streaming app_config: $e');
+      return AppUpdateState();
+    });
   }
 
   /// Admin method: Broadcasts an instant OTA live update and announcement doc in Firestore (Free Tier)
