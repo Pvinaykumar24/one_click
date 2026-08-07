@@ -23,7 +23,6 @@ service cloud.firestore {
     }
 
     // Helper: Check if authenticated user belongs to the target collegeId
-    // Checks token custom claim first, then user profile fields, falling back to 'iiitdm' for legacy profiles
     function isMemberOfCollege(collegeId) {
       return isAuthenticated() && (
         ('collegeId' in request.auth.token && request.auth.token.collegeId == collegeId) ||
@@ -33,25 +32,25 @@ service cloud.firestore {
       );
     }
 
+    // Match app_config collection for In-App OTA Live Updates & Remote Config
+    match /app_config/{document=**} {
+      allow read: if true; // Allow all students to stream real-time OTA updates & announcements
+      allow write: if isAuthenticated(); // Allow authenticated users / admins to publish updates
+    }
+
     // Match users collection
     match /users/{userId} {
-      // Allow read/create/update if owner or admin
       allow read, create, update: if isOwner(userId) || isAdmin();
-      // Deleting a user profile (destructive) is admin-only
       allow delete: if isAdmin();
       
-      // Match all user subcollections recursively (finances, cgpa, attendance, timetable, notifications, assignments)
       match /{subcollection}/{document=**} {
-        // Users can manage (including delete) their own subcollection entries
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
-    // Match institutions collection and all nested subcollections (messMenu, events, etc.)
+    // Match institutions collection and all nested subcollections
     match /institutions/{collegeId} {
-      // Enforce that reads only return documents matching the user's own collegeId
       allow read: if isMemberOfCollege(collegeId);
-      // Enforce that writes require both the admin claim AND a matching collegeId
       allow write: if isAdmin() && isMemberOfCollege(collegeId);
 
       match /messMenu/{document=**} {

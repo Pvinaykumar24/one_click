@@ -131,15 +131,17 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
         lastUpdated: DateTime.now(),
       );
 
+      debugPrint('🚀 [OTA LIVE UPDATE] Writing to app_config/latest...');
       await _db
           .collection('app_config')
           .doc('latest')
           .set(manifest.toMap(), SetOptions(merge: true));
 
-      debugPrint('🚀 [OTA LIVE UPDATE] Published to Firestore app_config/latest');
+      debugPrint('🚀 [OTA LIVE UPDATE] Successfully published to Firestore!');
       return true;
-    } catch (e) {
-      debugPrint('❌ [OTA LIVE UPDATE] Failed to publish: $e');
+    } catch (e, stack) {
+      debugPrint('❌ [OTA LIVE UPDATE ERROR]: $e');
+      debugPrint(stack.toString());
       return false;
     }
   }
