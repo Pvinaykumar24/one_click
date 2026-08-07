@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
 import '../services/attendance_service.dart';
+import '../services/timetable_service.dart';
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
@@ -12,8 +13,20 @@ class AttendanceScreen extends ConsumerStatefulWidget {
 }
 
 class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
-  void _showAddSubjectModal() {
-    final controller = TextEditingController();
+  final Map<String, bool> _expandedSubjects = {};
+
+  void _showAddEmergencyClassModal(String? preselectedSubject) {
+    final timetableSlots = ref.read(timetableProvider.notifier).slots;
+    final enrolledCourses = timetableSlots.map((s) => s.subject).toSet().toList()..sort();
+    final customSubjects = ref.read(customAttendanceSubjectsProvider);
+    final allSubjects = {...enrolledCourses, ...customSubjects}.toList()..sort();
+
+    String selectedSubject = preselectedSubject ?? (allSubjects.isNotEmpty ? allSubjects.first : 'General');
+    final startController = TextEditingController(text: '10:00');
+    final endController = TextEditingController(text: '11:00');
+    DateTime selectedDate = DateTime.now();
+    String selectedStatus = 'present';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -21,49 +34,116 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          top: 20, left: 20, right: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Add Subject / Course', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(context)),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            top: 20, left: 20, right: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 22),
+                      SizedBox(width: 8),
+                      Text('Log Emergency / Extra Class', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ],
+                  ),
+                  IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (allSubjects.isNotEmpty) ...[
+                const Text('Select Course', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                const SizedBox(height: 4),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedSubject,
+                  dropdownColor: const Color(0xFF161C28),
+                  style: const TextStyle(color: Colors.white),
+                  items: allSubjects.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (val) {
+                    if (val != null) setModalState(() => selectedSubject = val);
+                  },
+                  decoration: const InputDecoration(border: OutlineInputBorder()),
+                ),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'e.g. Artificial Intelligence',
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: const Color(0xFF161C28),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2A344B))),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: startController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: 'Start Time (e.g. 10:00)'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: endController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: 'End Time (e.g. 11:00)'),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)),
-                onPressed: () {
-                  if (controller.text.trim().isNotEmpty) {
-                    ref.read(attendanceProvider.notifier).addCustomSubject(controller.text.trim());
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Add Course to Tracker', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) {
+                        setModalState(() => selectedDate = picked);
+                      }
+                    },
+                    label: Text('Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  ),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'present', label: Text('Present')),
+                      ButtonSegment(value: 'absent', label: Text('Absent')),
+                    ],
+                    selected: {selectedStatus},
+                    onSelectionChanged: (val) {
+                      setModalState(() => selectedStatus = val.first);
+                    },
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  onPressed: () async {
+                    final slotStr = '${startController.text.trim()}-${endController.text.trim()}';
+                    await ref.read(attendanceProvider.notifier).logEmergencyClass(selectedSubject, selectedDate, slotStr, selectedStatus);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Emergency class logged for $selectedSubject ✅')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.check, color: Colors.white),
+                  label: const Text('Save Emergency Class', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -135,10 +215,10 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddSubjectModal,
+        onPressed: () => _showAddEmergencyClassModal(null),
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add Course', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        icon: const Icon(Icons.add_alert, color: Colors.white),
+        label: const Text('+ Emergency Class', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }
@@ -166,7 +246,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Attendance Tracker', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                  Text('Classes, Bunks & Thresholds', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text('Audited Scheduled Sessions & Emergency Classes', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 ],
               ),
             ],
@@ -199,7 +279,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     double requiredPct = ref.watch(attendanceThresholdProvider);
     double difference = overallPct - requiredPct;
     String safeMsg = difference >= 0
-        ? 'Safe Zone: ${difference.toStringAsFixed(1)}% above required'
+        ? 'Safe Zone: ${difference.toStringAsFixed(1)}% above required threshold'
         : 'Warning Zone: ${(-difference).toStringAsFixed(1)}% below required limit';
 
     return Container(
@@ -255,7 +335,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         TextButton.icon(
           onPressed: () => context.push('/schedule'),
           icon: const Icon(Icons.sync, size: 14, color: AppColors.primary),
-          label: const Text('Manage Schedule', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+          label: const Text('Manage Timetable', style: TextStyle(fontSize: 12, color: AppColors.primary)),
         ),
       ],
     );
@@ -275,7 +355,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           const SizedBox(height: 12),
           const Text('No Courses Synced Yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 6),
-          const Text('Add classes in Timetable Manager or tap "+ Add Course" to start tracking attendance!', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const Text('Add classes in Timetable Manager or tap "+ Emergency Class" to log an extra lecture!', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => context.push('/schedule'),
@@ -296,6 +376,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     int safeBunks = info['safeBunksLeft'];
     double requiredPct = info['requiredPercentage'];
     bool isWarning = pct < requiredPct;
+
+    final isExpanded = _expandedSubjects[subject] ?? false;
+    final sessions = ref.read(attendanceProvider.notifier).getScheduledSessionsForSubject(subject);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -361,58 +444,142 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Quick Action Log Buttons
+          // Session History Expander Header
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.success,
-                    side: BorderSide(color: AppColors.success.withValues(alpha: 0.4)),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  onPressed: () async {
-                    await ref.read(attendanceProvider.notifier).logAttendance(subject, 'present');
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.check, size: 14),
-                  label: const Text('+ Present', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
+              Text(
+                'Class Session History (${sessions.length} sessions)',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  onPressed: () async {
-                    await ref.read(attendanceProvider.notifier).logAttendance(subject, 'absent');
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.close, size: 14),
-                  label: const Text('+ Absent', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    side: const BorderSide(color: Color(0xFF2A344B)),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  onPressed: () async {
-                    await ref.read(attendanceProvider.notifier).logAttendance(subject, 'cancelled');
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.block, size: 14),
-                  label: const Text('Cancelled', style: TextStyle(fontSize: 11)),
+              InkWell(
+                onTap: () {
+                  setState(() => _expandedSubjects[subject] = !isExpanded);
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      isExpanded ? 'Hide History' : 'View & Audit Sessions',
+                      style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold),
+                    ),
+                    Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: 16, color: AppColors.primary),
+                  ],
                 ),
               ),
             ],
           ),
+
+          // Expanded Session History Timeline
+          if (isExpanded) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Color(0xFF1E2638)),
+            ...sessions.map((sess) {
+              final isEmergency = sess.isEmergency;
+              final dateStr = '${sess.date.day}/${sess.date.month}';
+              final status = sess.status;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF161C28),
+                    borderRadius: BorderRadius.circular(10),
+                    border: isEmergency ? Border.all(color: AppColors.warning.withValues(alpha: 0.4)) : null,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${sess.dayName} ($dateStr)',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              if (isEmergency) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+                                  child: const Text('EXTRA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.warning)),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(sess.slot, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        ],
+                      ),
+
+                      // Session Action Buttons (Present, Absent, Cancelled)
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () async {
+                              await ref.read(attendanceProvider.notifier).markAttended(subject, sess.date, sess.slot);
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: status == 'present' ? AppColors.success : Colors.transparent,
+                                border: Border.all(color: status == 'present' ? AppColors.success : Colors.white24),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Present',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: status == 'present' ? Colors.white : Colors.white70),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () async {
+                              await ref.read(attendanceProvider.notifier).markAbsent(subject, sess.date, sess.slot);
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: status == 'absent' ? AppColors.error : Colors.transparent,
+                                border: Border.all(color: status == 'absent' ? AppColors.error : Colors.white24),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Absent',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: status == 'absent' ? Colors.white : Colors.white70),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () async {
+                              await ref.read(attendanceProvider.notifier).markCancelled(subject, sess.date, sess.slot);
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: status == 'cancelled' ? Colors.white24 : Colors.transparent,
+                                border: Border.all(color: Colors.white24),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Cancelled',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: status == 'cancelled' ? Colors.white : Colors.white38),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
         ],
       ),
     );

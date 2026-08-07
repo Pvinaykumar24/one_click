@@ -11,8 +11,9 @@ class AttendanceRecord {
   final String id;
   final String subject;
   final DateTime date;
-  final String slot; // e.g. "09:00-09:50"
+  final String slot; // e.g. "09:00-10:00"
   String status; // 'present', 'absent', 'cancelled'
+  final bool isEmergency;
 
   AttendanceRecord({
     required this.id,
@@ -20,6 +21,7 @@ class AttendanceRecord {
     required this.date,
     required this.slot,
     this.status = 'present',
+    this.isEmergency = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +30,7 @@ class AttendanceRecord {
       'date': Timestamp.fromDate(date),
       'slot': slot,
       'status': status,
+      'isEmergency': isEmergency,
     };
   }
 
@@ -38,6 +41,7 @@ class AttendanceRecord {
       date: (map['date'] as Timestamp).toDate(),
       slot: map['slot'] ?? '',
       status: map['status'] ?? 'present',
+      isEmergency: map['isEmergency'] as bool? ?? false,
     );
   }
 }
@@ -120,21 +124,47 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
     ref.read(attendanceThresholdProvider.notifier).state = value;
   }
 
-  Future<void> _updateAttendanceStatus(String subject, DateTime date, String slot, String status) async {
+  String getSessionStatus(String subject, DateTime date, String slot) {
+    final match = records.where(
+      (r) => r.subject == subject && _isSameDay(r.date, date) && r.slot == slot,
+    );
+    if (match.isEmpty) return 'unmarked';
+    return match.first.status;
+  }
+
+  Future<void> _updateAttendanceStatus(
+    String subject,
+    DateTime date,
+    String slot,
+    String status, {
+    bool isEmergency = false,
+  }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     final currentRecords = records;
-    var existing = currentRecords.where((r) => r.subject == subject && _isSameDay(r.date, date) && r.slot == slot);
+    var existing = currentRecords.where(
+      (r) => r.subject == subject && _isSameDay(r.date, date) && r.slot == slot,
+    );
+
     if (existing.isEmpty) {
-      await _db.collection('users').doc(user.uid).collection('attendance').doc().set({
+      await _db.collection('users').doc(user.uid).collection('attendance').add({
         'subject': subject,
         'date': Timestamp.fromDate(date),
         'slot': slot,
         'status': status,
+        'isEmergency': isEmergency,
       });
     } else {
-      await _db.collection('users').doc(user.uid).collection('attendance').doc(existing.first.id).update({'status': status});
+      await _db
+          .collection('users')
+          .doc(user.uid)
+          .collection('attendance')
+          .doc(existing.first.id)
+          .update({
+        'status': status,
+        'isEmergency': isEmergency || existing.first.isEmergency,
+      });
     }
   }
 
@@ -150,28 +180,69 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
     await _updateAttendanceStatus(subject, date, slot, 'cancelled');
   }
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+  Future<void> logEmergencyClass(String subject, DateTime date, String slot, String status) async {
+    await _updateAttendanceStatus(subject, date, slot, status, isEmergency: true);
   }
 
-  Future<void> logAttendance(String subject, String status) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final now = DateTime.now();
-    final slotStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-
-    await _db.collection('users').doc(user.uid).collection('attendance').add({
-      'subject': subject,
-      'date': Timestamp.fromDate(now),
-      'slot': slotStr,
-      'status': status,
-    });
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Future<void> deleteRecord(String recordId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     await _db.collection('users').doc(user.uid).collection('attendance').doc(recordId).delete();
+  }
+
+  /// Returns recent occurred scheduled class sessions for a subject up to current date/time.
+  List<({DateTime date, String dayName, String slot, String status, bool isEmergency})> getScheduledSessionsForSubject(String subject) {
+    final now = DateTime.now();
+    final timetableSlots = ref.read(timetableProvider.notifier).slots.where((s) => s.subject == subject).toList();
+    final Map<String, AttendanceRecord> recordMap = {
+      for (var r in records.where((r) => r.subject == subject))
+        '${r.date.year}-${r.date.month}-${r.date.day}_${r.slot}': r
+    };
+
+    final List<({DateTime date, String dayName, String slot, String status, bool isEmergency})> sessions = [];
+
+    // 1. Add emergency / extra class records first
+    for (var r in records.where((r) => r.subject == subject && r.isEmergency)) {
+      final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      final dayStr = dayNames[r.date.weekday - 1];
+      sessions.add((
+        date: r.date,
+        dayName: '$dayStr (Emergency)',
+        slot: r.slot,
+        status: r.status,
+        isEmergency: true,
+      ));
+    }
+
+    // 2. Compute last 14 days of scheduled lectures
+    for (int i = 0; i < 14; i++) {
+      final pastDate = now.subtract(Duration(days: i));
+      final dayOfWeek = pastDate.weekday; // 1 = Mon ... 7 = Sun
+      final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      final matchingTimetableSlots = timetableSlots.where((s) => s.day == dayOfWeek);
+
+      for (var slotObj in matchingTimetableSlots) {
+        final slotStr = '${slotObj.start}-${slotObj.end}';
+        final key = '${pastDate.year}-${pastDate.month}-${pastDate.day}_$slotStr';
+        final existingRecord = recordMap[key];
+
+        sessions.add((
+          date: pastDate,
+          dayName: dayNames[dayOfWeek - 1],
+          slot: slotStr,
+          status: existingRecord?.status ?? 'unmarked',
+          isEmergency: false,
+        ));
+      }
+    }
+
+    // Sort newest first
+    sessions.sort((a, b) => b.date.compareTo(a.date));
+    return sessions;
   }
 
   Map<String, dynamic> getSubjectInfo(String subject) {
@@ -204,12 +275,6 @@ class AttendanceNotifier extends StreamNotifier<List<AttendanceRecord>> {
       'recoveryClasses': safeBunksLeft < 0 ? -safeBunksLeft : 0,
       'requiredPercentage': requiredPercentage,
     };
-  }
-
-  List<AttendanceRecord> getSubjectRecords(String subject) {
-    final currentRecords = records;
-    return currentRecords.where((r) => r.subject == subject).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   double getOverallPercentage() {

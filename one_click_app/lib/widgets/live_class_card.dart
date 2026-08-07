@@ -16,7 +16,6 @@ class LiveClassCard extends ConsumerStatefulWidget {
 class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  bool _hasMarkedAttendance = false;
 
   @override
   void initState() {
@@ -77,9 +76,9 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.4),
+        color: const Color(0xFF0F131C),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1E293B), width: 3),
+        border: Border.all(color: const Color(0xFF1E2638), width: 1.5),
       ),
       child: Column(
         children: [
@@ -137,26 +136,29 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
     String end = liveClass.end;
     String slot = '$start-$end';
 
+    // Watch attendance records to get persistent live state
+    final currentStatus = ref.read(attendanceProvider.notifier).getSessionStatus(subjectName, now, slot);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withValues(alpha: 0.3),
-            const Color(0xFF0F172A),
+            AppColors.primary.withValues(alpha: 0.25),
+            const Color(0xFF0F131C),
             AppColors.background,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 3),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            offset: Offset(2, 2),
-            blurRadius: 0,
+            color: AppColors.primary.withValues(alpha: 0.15),
+            blurRadius: 16,
+            spreadRadius: -2,
           ),
         ],
       ),
@@ -169,8 +171,8 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+                  color: AppColors.error.withValues(alpha: 0.15),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -201,29 +203,55 @@ class _LiveClassCardState extends ConsumerState<LiveClassCard> with SingleTicker
             ],
           ),
           const SizedBox(height: 16),
-          Text(subjectName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text(subjectName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 4),
-          Text(type, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-          const SizedBox(height: 24),
+          Text(type, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 20),
+
+          // Dual Action Attendance Buttons (Present & Absent)
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              ElevatedButton.icon(
-                onPressed: _hasMarkedAttendance ? null : () {
-                  ref.read(attendanceProvider.notifier).markAttended(subjectName, now, slot);
-                  setState(() => _hasMarkedAttendance = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('$subjectName attendance marked as Present ✅')),
-                  );
-                },
-                icon: Icon(_hasMarkedAttendance ? Icons.check_circle : Icons.how_to_reg, size: 18),
-                label: Text(_hasMarkedAttendance ? 'Attended ✓' : 'Attending'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasMarkedAttendance ? AppColors.success : AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 8,
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await ref.read(attendanceProvider.notifier).markAttended(subjectName, now, slot);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('$subjectName marked as Present ✅')),
+                      );
+                    }
+                  },
+                  icon: Icon(currentStatus == 'present' ? Icons.check_circle : Icons.how_to_reg, size: 16),
+                  label: Text(currentStatus == 'present' ? 'Attending ✓' : 'Mark Present'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: currentStatus == 'present' ? AppColors.success : AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 4,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await ref.read(attendanceProvider.notifier).markAbsent(subjectName, now, slot);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('$subjectName marked as Absent ❌')),
+                      );
+                    }
+                  },
+                  icon: Icon(currentStatus == 'absent' ? Icons.cancel : Icons.event_busy, size: 16),
+                  label: Text(currentStatus == 'absent' ? 'Absent ❌' : 'Mark Absent'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: currentStatus == 'absent' ? AppColors.error : Colors.white70,
+                    side: BorderSide(color: currentStatus == 'absent' ? AppColors.error : AppColors.error.withValues(alpha: 0.4)),
+                    backgroundColor: currentStatus == 'absent' ? AppColors.error.withValues(alpha: 0.15) : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
             ],

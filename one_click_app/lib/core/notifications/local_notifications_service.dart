@@ -96,7 +96,7 @@ class LocalNotificationsService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(settings: initSettings);
 
     // Create Android Notification Channel
     if (!kIsWeb && Platform.isAndroid) {
