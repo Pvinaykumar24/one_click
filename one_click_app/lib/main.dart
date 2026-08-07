@@ -51,17 +51,33 @@ void main() async {
   await Hive.openBox<dynamic>('settings_cache');
   debugPrint("🚀 [MAIN] HIVE CACHE READY");
 
-  await LocalNotificationsService.init();
-  debugPrint("🚀 [MAIN] LOCAL NOTIFICATIONS READY");
+  try {
+    await LocalNotificationsService.init();
+    debugPrint("🚀 [MAIN] LOCAL NOTIFICATIONS READY");
+  } catch (e) {
+    debugPrint("🚀 [MAIN] LOCAL NOTIFICATIONS ERROR: $e");
+  }
 
-  await FcmService.init();
-  debugPrint("🚀 [MAIN] FCM READY");
+  try {
+    await FcmService.init();
+    debugPrint("🚀 [MAIN] FCM READY");
+  } catch (e) {
+    debugPrint("🚀 [MAIN] FCM ERROR: $e");
+  }
 
-  await BackgroundSyncService.init();
-  debugPrint("🚀 [MAIN] BACKGROUND SYNC READY");
+  try {
+    await BackgroundSyncService.init();
+    debugPrint("🚀 [MAIN] BACKGROUND SYNC READY");
+  } catch (e) {
+    debugPrint("🚀 [MAIN] BACKGROUND SYNC ERROR: $e");
+  }
 
-  await RecurringTransactionsService.processDueTransactions();
-  debugPrint("🚀 [MAIN] RECURRING TRANSACTIONS PROCESSED");
+  try {
+    await RecurringTransactionsService.processDueTransactions();
+    debugPrint("🚀 [MAIN] RECURRING TRANSACTIONS PROCESSED");
+  } catch (e) {
+    debugPrint("🚀 [MAIN] RECURRING TRANSACTIONS ERROR: $e");
+  }
 
   debugPrint("🚀 [MAIN] RUNNING APP...");
   runApp(
@@ -71,8 +87,12 @@ void main() async {
   );
   
   debugPrint("🚀 [MAIN] REMOVING SPLASH...");
-  FlutterNativeSplash.remove();
-  debugPrint("🚀 [MAIN] SPLASH REMOVED");
+  try {
+    FlutterNativeSplash.remove();
+    debugPrint("🚀 [MAIN] SPLASH REMOVED");
+  } catch (e) {
+    debugPrint("🚀 [MAIN] SPLASH REMOVE ERROR: $e");
+  }
 }
 
 class MyApp extends ConsumerWidget {

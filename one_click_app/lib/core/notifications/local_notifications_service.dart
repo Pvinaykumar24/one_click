@@ -82,7 +82,7 @@ class LocalNotificationsService {
     }
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
@@ -96,7 +96,7 @@ class LocalNotificationsService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(settings: initSettings);
+    await _plugin.initialize(initSettings);
 
     // Create Android Notification Channel
     if (!kIsWeb && Platform.isAndroid) {
