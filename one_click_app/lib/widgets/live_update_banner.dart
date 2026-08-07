@@ -12,6 +12,7 @@ class LiveUpdateBanner extends ConsumerWidget {
 
     return asyncUpdateState.when(
       data: (updateState) {
+        debugPrint('🎨 [LIVE UPDATE BANNER] Rebuilding: announcement="${updateState.manifest?.liveAnnouncement}", updateAvailable=${updateState.hasUpdateAvailable}');
         if (updateState.manifest == null) return const SizedBox.shrink();
 
         final manifest = updateState.manifest!;

@@ -25,17 +25,37 @@ class AppUpdateManifest {
   });
 
   factory AppUpdateManifest.fromMap(Map<String, dynamic> map) {
+    int parsedBuildNumber = 1;
+    final b = map['buildNumber'];
+    if (b != null) {
+      if (b is int) {
+        parsedBuildNumber = b;
+      } else if (b is num) {
+        parsedBuildNumber = b.toInt();
+      } else if (b is String) {
+        parsedBuildNumber = int.tryParse(b) ?? 1;
+      }
+    }
+
+    DateTime parsedDate = DateTime.now();
+    final d = map['lastUpdated'];
+    if (d != null) {
+      if (d is Timestamp) {
+        parsedDate = d.toDate();
+      } else if (d is String) {
+        parsedDate = DateTime.tryParse(d) ?? DateTime.now();
+      }
+    }
+
     return AppUpdateManifest(
-      versionName: map['versionName'] as String? ?? '1.0.0',
-      buildNumber: map['buildNumber'] as int? ?? 1,
-      isMandatory: map['isMandatory'] as bool? ?? false,
-      releaseNotes: map['releaseNotes'] as String? ?? '',
-      apkDownloadUrl: map['apkDownloadUrl'] as String? ?? '',
-      liveAnnouncement: map['liveAnnouncement'] as String? ?? '',
-      featureFlags: (map['featureFlags'] as Map<String, dynamic>?) ?? {},
-      lastUpdated: map['lastUpdated'] != null
-          ? (map['lastUpdated'] as Timestamp).toDate()
-          : DateTime.now(),
+      versionName: map['versionName']?.toString() ?? '1.0.0',
+      buildNumber: parsedBuildNumber,
+      isMandatory: map['isMandatory'] == true,
+      releaseNotes: map['releaseNotes']?.toString() ?? '',
+      apkDownloadUrl: map['apkDownloadUrl']?.toString() ?? '',
+      liveAnnouncement: map['liveAnnouncement']?.toString() ?? '',
+      featureFlags: map['featureFlags'] is Map ? Map<String, dynamic>.from(map['featureFlags']) : {},
+      lastUpdated: parsedDate,
     );
   }
 
@@ -75,20 +95,27 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
 
   @override
   Stream<AppUpdateState> build() {
+    debugPrint('📡 [APP UPDATE SERVICE] Connecting to Firestore app_config/latest stream...');
     return _db
         .collection('app_config')
         .doc('latest')
         .snapshots()
         .map((doc) {
       if (!doc.exists || doc.data() == null) {
+        debugPrint('⚠️ [APP UPDATE SERVICE] app_config/latest doc does not exist or is empty.');
         return AppUpdateState(
           currentVersion: installedVersion,
           currentBuildNumber: installedBuild,
         );
       }
 
-      final manifest = AppUpdateManifest.fromMap(doc.data()!);
+      final data = doc.data()!;
+      debugPrint('📡 [APP UPDATE SERVICE] Received doc snapshot: $data');
+
+      final manifest = AppUpdateManifest.fromMap(data);
       bool hasUpdate = manifest.buildNumber > installedBuild;
+
+      debugPrint('⚡ [APP UPDATE SERVICE] Manifest loaded! liveAnnouncement: "${manifest.liveAnnouncement}", hasUpdate: $hasUpdate');
 
       return AppUpdateState(
         manifest: manifest,
@@ -97,8 +124,12 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
         currentBuildNumber: installedBuild,
       );
     }).handleError((e, st) {
-      debugPrint('Error streaming app_config: $e');
-      return AppUpdateState();
+      debugPrint('❌ [APP UPDATE SERVICE STREAM ERROR]: $e');
+      debugPrint(st.toString());
+      return AppUpdateState(
+        currentVersion: installedVersion,
+        currentBuildNumber: installedBuild,
+      );
     });
   }
 
@@ -112,27 +143,27 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
     required bool isMandatory,
   }) async {
     try {
-      final manifest = AppUpdateManifest(
-        versionName: versionName,
-        buildNumber: buildNumber,
-        releaseNotes: releaseNotes,
-        apkDownloadUrl: apkUrl,
-        liveAnnouncement: announcement,
-        isMandatory: isMandatory,
-        lastUpdated: DateTime.now(),
-      );
+      final manifestMap = {
+        'versionName': versionName,
+        'buildNumber': buildNumber,
+        'isMandatory': isMandatory,
+        'releaseNotes': releaseNotes,
+        'apkDownloadUrl': apkUrl,
+        'liveAnnouncement': announcement,
+        'featureFlags': {},
+        'lastUpdated': FieldValue.serverTimestamp(),
+      };
 
-      debugPrint('🚀 [OTA LIVE UPDATE] Writing to app_config/latest...');
+      debugPrint('🚀 [OTA LIVE UPDATE] Writing to Firestore app_config/latest: $manifestMap');
       await _db
           .collection('app_config')
           .doc('latest')
-          .set(manifest.toMap(), SetOptions(merge: true));
+          .set(manifestMap, SetOptions(merge: true));
 
       debugPrint('🚀 [OTA LIVE UPDATE] Successfully published to Firestore!');
       return true;
     } catch (e, stack) {
-      debugPrint('❌ [OTA LIVE UPDATE ERROR]: $e');
-      debugPrint(stack.toString());
+      debugPrint('❌ [OTA LIVE UPDATE WRITE ERROR]: $e\n$stack');
       return false;
     }
   }
