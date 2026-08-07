@@ -828,7 +828,7 @@ class ProfileScreen extends ConsumerWidget {
                 final apk = apkController.text.trim();
                 final ann = announcementController.text.trim();
 
-                final success = await ref.read(appUpdateProvider.notifier).publishLiveUpdate(
+                final error = await ref.read(appUpdateProvider.notifier).publishLiveUpdate(
                   versionName: ver,
                   buildNumber: buildNum,
                   releaseNotes: notes,
@@ -840,7 +840,7 @@ class ProfileScreen extends ConsumerWidget {
                 if (context.mounted) {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(success ? 'Real-Time OTA Update Published! 🚀' : 'Failed to publish OTA update')),
+                    SnackBar(content: Text(error == null ? 'Real-Time OTA Update Published! 🚀' : 'Publish Result: $error')),
                   );
                 }
               },

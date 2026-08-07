@@ -134,7 +134,7 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
   }
 
   /// Admin method: Broadcasts an instant OTA live update and announcement doc in Firestore (Free Tier)
-  Future<bool> publishLiveUpdate({
+  Future<String?> publishLiveUpdate({
     required String versionName,
     required int buildNumber,
     required String releaseNotes,
@@ -151,7 +151,7 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
         'apkDownloadUrl': apkUrl,
         'liveAnnouncement': announcement,
         'featureFlags': {},
-        'lastUpdated': FieldValue.serverTimestamp(),
+        'lastUpdated': Timestamp.now(),
       };
 
       debugPrint('🚀 [OTA LIVE UPDATE] Writing to Firestore app_config/latest: $manifestMap');
@@ -161,10 +161,11 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
           .set(manifestMap, SetOptions(merge: true));
 
       debugPrint('🚀 [OTA LIVE UPDATE] Successfully published to Firestore!');
-      return true;
+      return null; // Null means SUCCESS
     } catch (e, stack) {
-      debugPrint('❌ [OTA LIVE UPDATE WRITE ERROR]: $e\n$stack');
-      return false;
+      final err = 'Error: $e';
+      debugPrint('❌ [OTA LIVE UPDATE WRITE ERROR]: $err\n$stack');
+      return err;
     }
   }
 
