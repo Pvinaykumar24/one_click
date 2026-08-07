@@ -10,6 +10,8 @@ import '../services/money_manager_service.dart';
 import '../services/admin_service.dart';
 import '../core/notifications/local_notifications_service.dart';
 
+import '../core/widgets/grid_background.dart';
+
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -19,8 +21,9 @@ class ProfileScreen extends ConsumerWidget {
     ref.watch(cgpaProvider);
     final isAdmin = ref.watch(adminProvider).valueOrNull ?? false;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return NeoMotionBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       appBar: _buildAppBar(context, ref),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -110,8 +113,9 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref) {
     return AppBar(

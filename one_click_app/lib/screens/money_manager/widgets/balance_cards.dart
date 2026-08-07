@@ -16,17 +16,17 @@ class BalanceCards extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 280,
+            width: 260,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
+              color: AppColors.neoYellow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 15,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
+                  color: Colors.black,
+                  offset: Offset(4, 4),
+                  blurRadius: 0,
                 ),
               ],
             ),
@@ -36,73 +36,74 @@ class BalanceCards extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Total Balance',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.white.withValues(alpha: 0.6),
-                      size: 20,
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.black, width: 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.account_balance_wallet,
+                        color: Colors.black,
+                        size: 18,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   '₹${state.totalBalance.toStringAsFixed(2)}',
                   style: const TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
                     height: 1.1,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        '+5.2%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.neoLime,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: const Text(
+                    '✓ Balanced Portfolio',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Since last month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 16),
           Container(
-            width: 200,
+            width: 210,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B), // slate-800
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF334155)), // slate-700
+              color: AppColors.neoCyan,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(4, 4),
+                  blurRadius: 0,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,28 +111,36 @@ class BalanceCards extends StatelessWidget {
                 const Text(
                   'Monthly Spend',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   '₹${state.monthlySpend.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
                     height: 1.1,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  '12% of budget',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: const Text(
+                    'Active Budget',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ],

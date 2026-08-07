@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Soft paper cream / off-white Neo-Brutalism canvas base
-  static const Color background   = Color(0xFFF5F2EB); 
+  // Bright Electric Sun Yellow Neo-Brutalism Grid Canvas base
+  static const Color background   = Color(0xFFFFF8E1); // Bright Electric Yellow Tint
   static const Color surface      = Color(0xFFFFFFFF); 
-  static const Color surfaceLight = Color(0xFFFAF8F5); 
+  static const Color surfaceLight = Color(0xFFFFFDE7); 
 
-  // Neo-Brutalism Accent Palette
+  // Neo-Brutalism Electric Palette
   static const Color neoYellow  = Color(0xFFFFE600); // Electric Sun Yellow
   static const Color neoPink    = Color(0xFFFF2A85); // Hot Pink
   static const Color neoCyan    = Color(0xFF00E5FF); // Electric Cyan

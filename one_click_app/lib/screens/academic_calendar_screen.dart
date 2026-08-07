@@ -4,6 +4,8 @@ import '../core/theme/app_colors.dart';
 import '../services/events_service.dart';
 import '../services/admin_service.dart';
 
+import '../core/widgets/grid_background.dart';
+
 class AcademicCalendarScreen extends ConsumerStatefulWidget {
   const AcademicCalendarScreen({super.key});
 
@@ -27,42 +29,44 @@ class _AcademicCalendarScreenState extends ConsumerState<AcademicCalendarScreen>
       filteredEvents = filteredEvents.where((e) => e.type == _filter.toLowerCase()).toList();
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            _buildFilters(),
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.neonCyan))
-                  : filteredEvents.isEmpty
-                      ? const Center(child: Text('No events found', style: TextStyle(color: AppColors.textSecondary)))
-                      : ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          itemCount: filteredEvents.length,
-                          itemBuilder: (context, index) {
-                            final event = filteredEvents[index];
-                            bool showMonthHeader = index == 0 || 
-                                event.date.month != filteredEvents[index-1].date.month ||
-                                event.date.year != filteredEvents[index-1].date.year;
-                            
-                            return _buildEventCard(event, showMonthHeader, isAdmin);
-                          },
-                        ),
-            ),
-          ],
+    return NeoMotionBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              _buildFilters(),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Colors.black))
+                    : filteredEvents.isEmpty
+                        ? const Center(child: Text('No events found', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)))
+                        : ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            itemCount: filteredEvents.length,
+                            itemBuilder: (context, index) {
+                              final event = filteredEvents[index];
+                              bool showMonthHeader = index == 0 || 
+                                  event.date.month != filteredEvents[index-1].date.month ||
+                                  event.date.year != filteredEvents[index-1].date.year;
+                              
+                              return _buildEventCard(event, showMonthHeader, isAdmin);
+                            },
+                          ),
+              ),
+            ],
+          ),
         ),
+        floatingActionButton: isAdmin 
+          ? FloatingActionButton(
+              onPressed: () => _addEventDialog(),
+              backgroundColor: AppColors.neoYellow,
+              child: const Icon(Icons.add, color: Colors.black),
+            )
+          : null,
       ),
-      floatingActionButton: isAdmin 
-        ? FloatingActionButton(
-            onPressed: () => _addEventDialog(),
-            backgroundColor: AppColors.primary,
-            child: const Icon(Icons.add, color: Colors.white),
-          )
-        : null,
     );
   }
 
