@@ -54,6 +54,11 @@ service cloud.firestore {
       // Enforce that writes require both the admin claim AND a matching collegeId
       allow write: if isAdmin() && isMemberOfCollege(collegeId);
 
+      match /messMenu/{document=**} {
+        allow read: if isMemberOfCollege(collegeId);
+        allow write: if isMemberOfCollege(collegeId);
+      }
+
       match /{document=**} {
         allow read: if isMemberOfCollege(collegeId);
         allow write: if isAdmin() && isMemberOfCollege(collegeId);

@@ -1,8 +1,5 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../services/money_manager_service.dart';
 
@@ -21,8 +18,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String _category = 'Food';
   bool _isExpense = true;
   DateTime _selectedDate = DateTime.now();
-  XFile? _pickedImage;
-  bool _isUploading = false;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -30,18 +26,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     _amountController.dispose();
     _receiptUrlController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    try {
-      final picked = await picker.pickImage(source: source, imageQuality: 80);
-      if (picked != null) {
-        setState(() => _pickedImage = picked);
-      }
-    } catch (e) {
-      debugPrint("Error picking receipt photo: $e");
-    }
   }
 
   Future<void> _submitTransaction() async {
@@ -56,20 +40,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       return;
     }
 
-    setState(() => _isUploading = true);
+    setState(() => _isSaving = true);
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
-    String? finalReceiptUrl = _receiptUrlController.text.trim().isNotEmpty ? _receiptUrlController.text.trim() : null;
-
-    if (_pickedImage != null) {
-      try {
-        final uploaded = await ref.read(moneyManagerProvider.notifier).uploadReceiptImage(_pickedImage!, txId);
-        if (uploaded != null) {
-          finalReceiptUrl = uploaded;
-        }
-      } catch (e) {
-        debugPrint("Image upload error caught: $e");
-      }
-    }
+    final receiptUrl = _receiptUrlController.text.trim().isNotEmpty ? _receiptUrlController.text.trim() : null;
 
     final success = await ref.read(moneyManagerProvider.notifier).addTransaction(
       Transaction(
@@ -79,12 +52,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         amount: amount,
         date: _selectedDate,
         isExpense: _isExpense,
-        receiptUrl: finalReceiptUrl,
+        receiptUrl: receiptUrl,
       ),
     );
 
     if (mounted) {
-      setState(() => _isUploading = false);
+      setState(() => _isSaving = false);
       if (success) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -216,86 +189,16 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 16),
-            const Text(
-              'Attach Receipt Photo:',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: const Icon(Icons.camera_alt, size: 18),
-                    label: const Text('Camera', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    onPressed: _isUploading ? null : () => _pickImage(ImageSource.camera),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.cyan,
-                      side: const BorderSide(color: Colors.cyan),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: const Icon(Icons.photo_library, size: 18),
-                    label: const Text('Gallery', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    onPressed: _isUploading ? null : () => _pickImage(ImageSource.gallery),
-                  ),
-                ),
-              ],
-            ),
-            if (_pickedImage != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.cyan.withValues(alpha: 0.5)),
-                ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: kIsWeb
-                          ? Image.network(_pickedImage!.path, width: 44, height: 44, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.receipt_long, color: Colors.cyan, size: 24))
-                          : Image.file(File(_pickedImage!.path), width: 44, height: 44, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.receipt_long, color: Colors.cyan, size: 24)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _pickedImage!.name,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.error, size: 18),
-                      onPressed: _isUploading ? null : () => setState(() => _pickedImage = null),
-                    ),
-                  ],
-                ),
-              ),
-            ],
             const SizedBox(height: 12),
             TextField(
               controller: _receiptUrlController,
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: const InputDecoration(
-                labelText: 'Receipt URL / Note (Optional)',
+                labelText: 'Receipt URL / Web Link (Optional)',
                 labelStyle: TextStyle(color: AppColors.textSecondary),
-                prefixIcon: Icon(Icons.receipt_long, color: AppColors.textSecondary, size: 20),
+                hintText: 'https://...',
+                hintStyle: TextStyle(color: Colors.white24, fontSize: 12),
+                prefixIcon: Icon(Icons.link, color: Colors.cyan, size: 20),
               ),
             ),
           ],
@@ -303,7 +206,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isUploading ? null : () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text(
             'Cancel',
             style: TextStyle(color: AppColors.textSecondary),
@@ -314,8 +217,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             backgroundColor: AppColors.primary,
             minimumSize: const Size(80, 38),
           ),
-          onPressed: _isUploading ? null : _submitTransaction,
-          child: _isUploading
+          onPressed: _isSaving ? null : _submitTransaction,
+          child: _isSaving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Text('Add Entry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),

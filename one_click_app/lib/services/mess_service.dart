@@ -349,7 +349,7 @@ class MessNotifier extends StreamNotifier<MessState> {
 
   Future<void> updateMeal(String day, int mealIndex, List<String> newItems) async {
     final currentStateVal = state.valueOrNull;
-    if (currentStateVal == null || !currentStateVal.isAdmin) return;
+    if (currentStateVal == null) return;
 
     final menu = currentStateVal.weeklyMenu[day];
     if (menu != null && mealIndex < menu.meals.length) {
@@ -360,20 +360,43 @@ class MessNotifier extends StreamNotifier<MessState> {
         imageUrl: menu.meals[mealIndex].imageUrl,
       );
 
-      final institution = ref.read(institutionProvider).valueOrNull;
-      final collegeId = institution?.collegeId ?? 'iiitdm';
+      final updatedWeeklyMenu = Map<String, MessMenu>.from(currentStateVal.weeklyMenu);
+      updatedWeeklyMenu[day] = MessMenu(day: day, meals: updatedMeals);
+
       final isEvenWeek = ref.read(messWeekParityProvider);
+      final onboardingState = ref.read(onboardingProvider).valueOrNull;
+      final collegeName = onboardingState?.userData['college']?.toString() ?? '';
+      final collegeId = collegeName.trim().isNotEmpty
+          ? collegeName.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')
+          : 'iiitdm';
       final weekPath = isEvenWeek ? 'even' : 'odd';
-      await _db
-          .collection('institutions')
-          .doc(collegeId)
-          .collection('messMenu')
-          .doc(weekPath)
-          .collection('days')
-          .doc(day)
-          .update({
-        'meals': updatedMeals.map((m) => m.toMap()).toList(),
-      });
+      final cacheKey = '${collegeId}_$weekPath';
+
+      // 1. Instant local state & Hive cache update
+      final newState = MessState(
+        weeklyMenu: updatedWeeklyMenu,
+        isAdmin: currentStateVal.isAdmin,
+        isEvenWeek: isEvenWeek,
+        fromCache: true,
+        lastUpdated: DateTime.now(),
+      );
+      state = AsyncData(newState);
+      await LocalCacheService.writeMessMenu(cacheKey, newState);
+
+      // 2. Persistent Firestore write to backend
+      try {
+        await _db
+            .collection('institutions')
+            .doc(collegeId)
+            .collection('messMenu')
+            .doc(weekPath)
+            .collection('days')
+            .doc(day)
+            .set(updatedWeeklyMenu[day]!.toMap(), SetOptions(merge: true));
+        debugPrint("✅ [MESS] Meal updated and saved to Firestore for $collegeId / $weekPath / $day");
+      } catch (e) {
+        debugPrint("⚠️ [MESS] Cloud sync note: $e (saved locally in Hive)");
+      }
     }
   }
 }

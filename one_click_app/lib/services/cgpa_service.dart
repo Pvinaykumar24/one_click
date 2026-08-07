@@ -231,6 +231,23 @@ class CgpaNotifier extends StreamNotifier<CgpaState> {
     await _save(current.copyWith(pastSemesters: updatedSemesters));
   }
 
+  Future<void> updateSemester(int index, SemesterData semester) async {
+    final current = currentState;
+    if (index < current.pastSemesters.length) {
+      final updatedSemesters = List<SemesterData>.from(current.pastSemesters);
+      updatedSemesters[index] = semester;
+      await _save(current.copyWith(pastSemesters: updatedSemesters));
+    }
+  }
+
+  Future<void> deleteSemester(int index) async {
+    final current = currentState;
+    if (index < current.pastSemesters.length) {
+      final updatedSemesters = List<SemesterData>.from(current.pastSemesters)..removeAt(index);
+      await _save(current.copyWith(pastSemesters: updatedSemesters));
+    }
+  }
+
   Future<void> updateTargetCgpa(double value) async {
     final current = currentState;
     await _save(current.copyWith(targetCgpa: value));
@@ -368,26 +385,30 @@ class CgpaNotifier extends StreamNotifier<CgpaState> {
     }
 
     int totalCredits = currentCredits + currentSemCredits;
-    if (totalCredits == 0) return [];
+    if (totalCredits == 0 || currentSemCredits == 0) return [];
 
     double targetTotalPoints = currentState.targetCgpa * totalCredits;
     double neededFromThisSem = targetTotalPoints - currentPoints;
     double neededSGPA = neededFromThisSem / currentSemCredits;
     final scale = gradingScale;
+
+    bool isFeasible = neededSGPA <= scale.maxPoints && neededSGPA >= 0;
     final clampedGP = neededSGPA.clamp(0.0, scale.maxPoints);
 
     List<Map<String, dynamic>> suggestions = [];
     for (var sub in subjects) {
-       suggestions.add({
-         'subject': sub.name,
-         'credits': sub.credits,
-         'currentGrade': sub.getGradeLetter(scale),
-         'currentGP': sub.gradePoint,
-         'neededGP': clampedGP,
-         'neededGrade': scale.getGradeLetter(clampedGP),
-       });
-     }
-     return suggestions;
+      suggestions.add({
+        'subject': sub.name,
+        'credits': sub.credits,
+        'currentGrade': sub.getGradeLetter(scale),
+        'currentGP': sub.gradePoint,
+        'neededGP': clampedGP,
+        'neededGrade': isFeasible ? scale.getGradeLetter(clampedGP) : 'N/A',
+        'rawNeededSGPA': neededSGPA,
+        'isFeasible': isFeasible,
+      });
+    }
+    return suggestions;
   }
 }
 
