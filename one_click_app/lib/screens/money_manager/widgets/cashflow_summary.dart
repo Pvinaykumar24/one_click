@@ -23,8 +23,8 @@ class CashflowSummary extends StatelessWidget {
           'Cashflow Summary',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w900,
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 16),
@@ -34,25 +34,31 @@ class CashflowSummary extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.error.withValues(alpha: 0.2),
-                  ),
+                  color: AppColors.neoPink,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black, width: 2.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black,
+                      offset: Offset(3, 3),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.call_made, color: AppColors.error, size: 20),
+                        Icon(Icons.call_made, color: Colors.white, size: 20),
                         SizedBox(width: 6),
                         Text(
                           'EXPENSES',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.error,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
@@ -62,16 +68,17 @@ class CashflowSummary extends StatelessWidget {
                       '₹${expense.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'Total Outflow',
                       style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -83,11 +90,16 @@ class CashflowSummary extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.2),
-                  ),
+                  color: AppColors.neoLime,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black, width: 2.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black,
+                      offset: Offset(3, 3),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +108,7 @@ class CashflowSummary extends StatelessWidget {
                       children: const [
                         Icon(
                           Icons.call_received,
-                          color: AppColors.success,
+                          color: Colors.black,
                           size: 20,
                         ),
                         SizedBox(width: 6),
@@ -104,8 +116,9 @@ class CashflowSummary extends StatelessWidget {
                           'INCOME',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.success,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
@@ -115,16 +128,17 @@ class CashflowSummary extends StatelessWidget {
                       '₹${income.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'Total Inflow',
                       style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],

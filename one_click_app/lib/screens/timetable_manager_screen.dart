@@ -47,7 +47,7 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F131C),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -73,12 +73,12 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           isEditing ? 'Edit Class Slot' : 'Add Class Slot',
                           style: const TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.close, color: Colors.black),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
@@ -86,13 +86,13 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                     const SizedBox(height: 16),
                     
                     // Day Selector
-                    const Text('DAY OF WEEK', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('DAY OF WEEK', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<int>(
                       initialValue: selectedDay,
                       decoration: _inputDecoration('Select Day'),
-                      dropdownColor: const Color(0xFF161C28),
-                      style: const TextStyle(color: Colors.white),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       items: List.generate(7, (i) => DropdownMenuItem(
                         value: i + 1,
                         child: Text('${_fullDayNames[i]} (${_dayNames[i]})'),
@@ -104,17 +104,17 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                     const SizedBox(height: 14),
 
                     // Subject Name
-                    const Text('SUBJECT / COURSE NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('SUBJECT / COURSE NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: subjectController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       decoration: _inputDecoration('e.g. Data Structures & Algorithms'),
                     ),
                     const SizedBox(height: 14),
 
                     // Quick Time Preset Chips
-                    const Text('QUICK TIME PRESETS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('QUICK TIME PRESETS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     SizedBox(
                       height: 36,
@@ -127,11 +127,14 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           return Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: ChoiceChip(
-                              label: Text(preset['label']!, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : AppColors.textSecondary)),
+                              label: Text(preset['label']!, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
                               selected: isSelected,
-                              selectedColor: AppColors.primary,
-                              backgroundColor: const Color(0xFF161C28),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              selectedColor: Colors.black,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(color: Colors.black, width: 1.5),
+                              ),
                               onSelected: (_) {
                                 setModalState(() {
                                   startController.text = preset['start']!;
@@ -152,11 +155,11 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('ROOM / VENUE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('ROOM / VENUE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: roomController,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 decoration: _inputDecoration('e.g. Lab 204'),
                               ),
                             ],
@@ -167,12 +170,12 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('CREDITS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('CREDITS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: creditsController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 decoration: _inputDecoration('3'),
                               ),
                             ],
@@ -189,11 +192,11 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('START TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('START TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: startController,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 decoration: _inputDecoration('09:00'),
                               ),
                             ],
@@ -204,11 +207,11 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('END TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('END TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: endController,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 decoration: _inputDecoration('10:00'),
                               ),
                             ],
@@ -219,13 +222,13 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                     const SizedBox(height: 14),
 
                     // Class Type
-                    const Text('CLASS TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('CLASS TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: selectedType,
                       decoration: _inputDecoration('Select Type'),
-                      dropdownColor: const Color(0xFF161C28),
-                      style: const TextStyle(color: Colors.white),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       items: ['Lecture', 'Lab', 'Tutorial', 'Seminar', 'Exam']
                           .map((type) => DropdownMenuItem(value: type, child: Text(type)))
                           .toList(),
@@ -241,9 +244,12 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: AppColors.neoYellow,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: const BorderSide(color: Colors.black, width: 2),
+                              ),
                             ),
                             onPressed: () async {
                               final subject = subjectController.text.trim();
@@ -267,8 +273,8 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                               if (context.mounted) Navigator.pop(context);
                             },
                             child: Text(
-                              isEditing ? 'Save Changes' : 'Add Slot',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                              isEditing ? 'Save Changes ⚡' : 'Add Slot ⚡',
+                              style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
                             ),
                           ),
                         ),
@@ -276,10 +282,10 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                           const SizedBox(width: 8),
                           IconButton(
                             style: IconButton.styleFrom(
-                              backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                              backgroundColor: AppColors.neoPink,
                               padding: const EdgeInsets.all(14),
                             ),
-                            icon: const Icon(Icons.delete, color: AppColors.error),
+                            icon: const Icon(Icons.delete, color: Colors.white),
                             onPressed: () async {
                               await ref.read(timetableProvider.notifier).deleteSlot(slotToEdit.id);
                               if (context.mounted) Navigator.pop(context);
@@ -301,21 +307,21 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white38),
+      hintStyle: const TextStyle(color: Colors.black38),
       filled: true,
-      fillColor: const Color(0xFF161C28),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF2A344B)),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.black, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF2A344B)),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.black, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.black, width: 2.5),
       ),
     );
   }
@@ -333,8 +339,8 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
             _buildDaySelectorRow(),
             Expanded(
               child: timetableState.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (e, _) => Center(child: Text('Error loading timetable: $e', style: const TextStyle(color: AppColors.error))),
+                loading: () => const Center(child: CircularProgressIndicator(color: Colors.black)),
+                error: (e, _) => Center(child: Text('Error loading timetable: $e', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
                 data: (slots) {
                   if (slots.isEmpty) {
                     return _buildEmptyState();
@@ -348,9 +354,14 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEditSlotModal(),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add Slot', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: AppColors.neoYellow,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Colors.black, width: 2.5),
+        ),
+        icon: const Icon(Icons.add, color: Colors.black),
+        label: const Text('Add Slot ⚡', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
       ),
     );
   }
@@ -358,9 +369,9 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.9),
-        border: const Border(bottom: BorderSide(color: Color(0xFF1E2638))),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: Colors.black, width: 2)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -368,7 +379,7 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
@@ -377,11 +388,11 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                 children: [
                   Text(
                     'Timetable Manager',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
                   ),
                   Text(
                     '7-Day Custom Class Schedule',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -390,7 +401,7 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
           Row(
             children: [
               IconButton(
-                icon: Icon(_isGridView ? Icons.view_agenda : Icons.grid_view, color: AppColors.primary),
+                icon: Icon(_isGridView ? Icons.view_agenda : Icons.grid_view, color: Colors.black),
                 tooltip: _isGridView ? 'Agenda View' : 'Grid View',
                 onPressed: () => setState(() => _isGridView = !_isGridView),
               ),
@@ -452,28 +463,30 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.calendar_month_outlined, size: 64, color: AppColors.textSecondary),
+            const Icon(Icons.calendar_month_outlined, size: 64, color: Colors.black),
             const SizedBox(height: 16),
             const Text(
               'No Classes Scheduled',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black),
             ),
             const SizedBox(height: 8),
             const Text(
               'Tap "+ Add Slot" below to create custom classes for any day of the week (Monday through Sunday)!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _seedDefaultSampleTimetable,
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('Load Sample Timetable'),
+              icon: const Icon(Icons.auto_awesome, color: Colors.black),
+              label: const Text('Load Sample Timetable ⚡', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.neoYellow,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: Colors.black, width: 2.5),
+                ),
               ),
             ),
           ],
@@ -504,20 +517,23 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.event_available, size: 48, color: AppColors.textSecondary),
+            const Icon(Icons.event_available, size: 48, color: Colors.black54),
             const SizedBox(height: 12),
             Text(
               'No classes on ${_fullDayNames[_selectedDayIndex - 1]}',
-              style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            OutlinedButton.icon(
+            ElevatedButton.icon(
               onPressed: () => _showAddEditSlotModal(defaultDay: _selectedDayIndex),
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Class for Today'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+              icon: const Icon(Icons.add, size: 16, color: Colors.black),
+              label: const Text('Add Class for Today', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.neoYellow,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.black, width: 2),
+                ),
               ),
             ),
           ],
@@ -602,27 +618,34 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F131C),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1E2638)),
+              border: Border.all(color: Colors.black, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(3, 3),
+                  blurRadius: 0,
+                ),
+              ],
             ),
             child: ExpansionTile(
               initiallyExpanded: dayNum == _selectedDayIndex,
               leading: CircleAvatar(
                 radius: 14,
-                backgroundColor: dayNum == _selectedDayIndex ? AppColors.primary : const Color(0xFF161C28),
+                backgroundColor: dayNum == _selectedDayIndex ? AppColors.neoYellow : Colors.black,
                 child: Text(
                   _dayNames[dayIdx][0],
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: dayNum == _selectedDayIndex ? Colors.black : Colors.white),
                 ),
               ),
               title: Text(
                 _fullDayNames[dayIdx],
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14),
+                style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black, fontSize: 15),
               ),
               subtitle: Text(
                 '${slotsForDay.length} classes scheduled',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold),
               ),
               children: slotsForDay.isEmpty
                   ? [
@@ -630,17 +653,17 @@ class _TimetableManagerScreenState extends ConsumerState<TimetableManagerScreen>
                         padding: const EdgeInsets.all(12),
                         child: TextButton.icon(
                           onPressed: () => _showAddEditSlotModal(defaultDay: dayNum),
-                          icon: const Icon(Icons.add, size: 14),
-                          label: const Text('Add Class Slot', style: TextStyle(fontSize: 12)),
+                          icon: const Icon(Icons.add, size: 14, color: Colors.black),
+                          label: const Text('Add Class Slot', style: TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold)),
                         ),
                       )
                     ]
                   : slotsForDay.map((slot) {
                       return ListTile(
                         dense: true,
-                        title: Text(slot.subject, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        subtitle: Text('${slot.start} - ${slot.end} (${slot.room})', style: const TextStyle(color: Colors.white70)),
-                        trailing: Icon(Icons.edit, size: 16, color: AppColors.primary.withValues(alpha: 0.7)),
+                        title: Text(slot.subject, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
+                        subtitle: Text('${slot.start} - ${slot.end} (${slot.room})', style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.edit, size: 16, color: Colors.black),
                         onTap: () => _showAddEditSlotModal(slotToEdit: slot),
                       );
                     }).toList(),

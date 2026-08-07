@@ -31,19 +31,6 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
       initialDate: initial,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              surface: AppColors.surface,
-              onSurface: AppColors.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -74,16 +61,27 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
     }).toList();
 
     return AlertDialog(
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Colors.black, width: 2.5),
+      ),
       title: Row(
         children: [
-          const Icon(Icons.table_chart, color: AppColors.primary, size: 24),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.neoCyan,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 1.5),
+            ),
+            child: const Icon(Icons.table_chart, color: Colors.black, size: 20),
+          ),
           const SizedBox(width: 10),
           const Expanded(
             child: Text(
               'Export Transactions (CSV)',
-              style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16),
             ),
           ),
         ],
@@ -93,8 +91,8 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Select a date range (defaults to current month) to export your ledger in standard RFC 4180 format with columns: Date, Category, Description, Amount, Currency.',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            'Export your financial ledger in standard CSV format for Excel, Google Sheets, or auditing.',
+            style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 16),
           Row(
@@ -121,15 +119,15 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+              color: matchingTx.isEmpty ? AppColors.neoPink : AppColors.neoLime,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black, width: 1.5),
             ),
             child: Row(
               children: [
                 Icon(
                   matchingTx.isEmpty ? Icons.info_outline : Icons.check_circle_outline,
-                  color: matchingTx.isEmpty ? AppColors.textSecondary : AppColors.success,
+                  color: matchingTx.isEmpty ? Colors.white : Colors.black,
                   size: 18,
                 ),
                 const SizedBox(width: 10),
@@ -137,8 +135,8 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
                   '${matchingTx.length} transaction${matchingTx.length == 1 ? '' : 's'} ready to export',
                   style: TextStyle(
                     fontSize: 13,
-                    color: matchingTx.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
+                    color: matchingTx.isEmpty ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
@@ -149,16 +147,19 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          child: const Text('Cancel', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
         ),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            backgroundColor: AppColors.neoYellow,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.black, width: 2),
+            ),
           ),
-          icon: const Icon(Icons.share, size: 16),
-          label: const Text('Export & Share', style: TextStyle(fontWeight: FontWeight.bold)),
+          icon: const Icon(Icons.share, size: 16, color: Colors.black),
+          label: const Text('Export & Share ⚡', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
           onPressed: matchingTx.isEmpty
               ? null
               : () async {
@@ -182,24 +183,24 @@ class _ExportCsvDialogState extends State<ExportCsvDialog> {
   Widget _buildDateTile({required String title, required String dateStr, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.5),
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          border: Border.all(color: Colors.black, width: 2),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text(title, style: const TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.calendar_month, color: AppColors.primary, size: 14),
+                const Icon(Icons.calendar_month, color: Colors.black, size: 14),
                 const SizedBox(width: 6),
-                Text(dateStr, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                Text(dateStr, style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.w900)),
               ],
             ),
           ],

@@ -74,11 +74,28 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        'Add Transaction',
-        style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Colors.black, width: 2.5),
+      ),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: _isExpense ? AppColors.neoPink : AppColors.neoLime,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 1.5),
+            ),
+            child: Icon(_isExpense ? Icons.north_east : Icons.south_west, color: Colors.black, size: 18),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'Add Entry',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18),
+          ),
+        ],
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -87,45 +104,54 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           children: [
             TextField(
               controller: _titleController,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 labelText: 'Title',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
+                labelStyle: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
                 hintText: 'e.g. Lunch, Bus Pass, Salary',
-                hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
+                hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 labelText: 'Amount (₹)',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
+                labelStyle: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
                 hintText: 'e.g. 250',
-                hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
+                hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Row(
               children: [
-                const Text(
-                  'Type:',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
+                const Text('Type:', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(width: 8),
                 Switch(
                   value: _isExpense,
-                  activeThumbColor: AppColors.error,
-                  inactiveThumbColor: AppColors.success,
+                  activeThumbColor: Colors.black,
+                  activeTrackColor: AppColors.neoPink,
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor: AppColors.neoLime,
                   onChanged: (val) => setState(() => _isExpense = val),
                 ),
-                Text(
-                  _isExpense ? 'Expense' : 'Income',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _isExpense ? AppColors.error : AppColors.success,
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _isExpense ? AppColors.neoPink : AppColors.neoLime,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: Text(
+                    _isExpense ? 'Expense' : 'Income',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                      color: _isExpense ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
               ],
@@ -133,15 +159,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Text('Category:', style: TextStyle(color: AppColors.textSecondary)),
+                const Text('Category:', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: DropdownButton<String>(
-                    value: _category,
-                    isExpanded: true,
-                    dropdownColor: AppColors.surface,
-                    style: const TextStyle(color: AppColors.textPrimary),
-                    underline: Container(height: 1, color: AppColors.border),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _category,
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                     items: [
                       'Food',
                       'Supplies',
@@ -163,12 +187,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Date Picker Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Transaction Date:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                const Text('Date:', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                 TextButton.icon(
                   onPressed: () async {
                     final picked = await showDatePicker(
@@ -181,10 +203,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       setState(() => _selectedDate = picked);
                     }
                   },
-                  icon: const Icon(Icons.calendar_month, size: 16, color: AppColors.primary),
+                  icon: const Icon(Icons.calendar_month, size: 16, color: Colors.black),
                   label: Text(
                     '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13),
                   ),
                 ),
               ],
@@ -192,13 +214,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: _receiptUrlController,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 labelText: 'Receipt URL / Web Link (Optional)',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
+                labelStyle: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
                 hintText: 'https://...',
-                hintStyle: TextStyle(color: Colors.white24, fontSize: 12),
-                prefixIcon: Icon(Icons.link, color: Colors.cyan, size: 20),
+                hintStyle: TextStyle(color: Colors.black38, fontSize: 12),
+                prefixIcon: Icon(Icons.link, color: Colors.black, size: 20),
               ),
             ),
           ],
@@ -207,20 +229,21 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
+          child: const Text('Cancel', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            minimumSize: const Size(80, 38),
+            backgroundColor: AppColors.neoYellow,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.black, width: 2),
+            ),
           ),
           onPressed: _isSaving ? null : _submitTransaction,
           child: _isSaving
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Add Entry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+              : const Text('Add Entry ⚡', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
         ),
       ],
     );

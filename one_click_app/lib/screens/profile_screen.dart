@@ -1,144 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../services/onboarding_service.dart';
-import '../services/attendance_service.dart';
 import '../services/cgpa_service.dart';
+import '../services/attendance_service.dart';
 import '../services/money_manager_service.dart';
 import '../services/admin_service.dart';
 import '../services/app_update_service.dart';
 import '../core/notifications/local_notifications_service.dart';
-
+import '../core/theme/app_colors.dart';
 import '../core/widgets/grid_background.dart';
+import 'academic_calendar_screen.dart';
+import 'assignment_hub_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(attendanceProvider);
-    ref.watch(cgpaProvider);
-    final isAdmin = ref.watch(adminProvider).valueOrNull ?? false;
+    final authState = ref.watch(authProvider);
+    final user = authState.valueOrNull;
 
-    return NeoMotionBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(context, ref),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildProfileHeader(context, ref),
-            const SizedBox(height: 24),
-            _buildStatsGrid(ref),
-            const SizedBox(height: 32),
-            _buildMenuSection(
-              title: 'Academic Hub',
-              items: [
-                _buildMenuItem(
-                  context,
-                  Icons.edit_note,
-                  'Edit Academic Profile',
-                  onTap: () => _showEditProfileModal(context, ref),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: NeoMotionBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildProfileHeader(context, ref),
+                const SizedBox(height: 24),
+                _buildStatsGrid(ref),
+                const SizedBox(height: 24),
+                _buildMenuSection(
+                  title: 'Academic Tools & Records',
+                  items: [
+                    _buildMenuItem(
+                      context,
+                      Icons.description_outlined,
+                      'Digital Transcript Export',
+                      onTap: () => _showTranscriptDialog(context, ref),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.school_outlined,
+                      'Degree Progress Audit',
+                      onTap: () => _showDegreeAuditDialog(context, ref),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.assignment_outlined,
+                      'Assignment Hub',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AssignmentHubScreen()),
+                      ),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.calendar_month_outlined,
+                      'Academic Calendar',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AcademicCalendarScreen()),
+                      ),
+                    ),
+                  ],
                 ),
-                _buildMenuItem(
-                  context,
-                  Icons.description_outlined,
-                  'Transcript Request',
-                  onTap: () => _showTranscriptDialog(context, ref),
+                const SizedBox(height: 20),
+                _buildMenuSection(
+                  title: 'App Settings & Preferences',
+                  items: [
+                    _buildMenuItem(
+                      context,
+                      Icons.notifications_outlined,
+                      'Notification Reminders',
+                      onTap: () => _showNotificationSettingsDialog(context, ref),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.security_outlined,
+                      'Security & Privacy',
+                      onTap: () => _showSecurityDialog(context, ref),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.help_outline,
+                      'Help & Support',
+                      onTap: () => _showSupportDialog(context),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      Icons.info_outline,
+                      'About One Click',
+                      onTap: () => _showAboutDialog(context),
+                    ),
+                  ],
                 ),
-                _buildMenuItem(
-                  context,
-                  Icons.school_outlined,
-                  'Degree Progress Audit',
-                  onTap: () => _showDegreeAuditDialog(context, ref),
-                ),
-                _buildMenuItem(
-                  context,
-                  Icons.calendar_month_outlined,
-                  'Manage Class Timetable',
-                  onTap: () => context.push('/schedule'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildMenuSection(
-              title: 'Settings & Security',
-              items: [
-                _buildMenuItem(
-                  context,
-                  Icons.notifications_outlined,
-                  'Notifications & Reminders',
-                  onTap: () => _showNotificationSettingsDialog(context, ref),
-                ),
-                _buildMenuItem(
-                  context,
-                  Icons.security_outlined,
-                  'Privacy & Security',
-                  onTap: () => _showSecurityDialog(context, ref),
-                ),
-                _buildMenuItem(
-                  context,
-                  Icons.help_outline,
-                  'Help & Support',
-                  onTap: () => _showSupportDialog(context),
-                ),
-                _buildMenuItem(
-                  context,
-                  Icons.info_outline,
-                  'About One Click',
-                  onTap: () => _showAboutDialog(context),
-                ),
-              ],
-            ),
-            if (isAdmin) ...[
-              const SizedBox(height: 24),
-              _buildMenuSection(
-                title: 'System Maintenance & OTA Live Updates',
-                items: [
-                  _buildMenuItem(
-                    context,
-                    Icons.system_update_alt,
-                    'Push Real-Time OTA Live Update & Announcement',
-                    onTap: () => _showPublishOtaDialog(context, ref),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    Icons.dangerous,
-                    'Wipe All User Data (Preserves Admin)',
-                    onTap: () => _confirmWipe(context, ref),
-                  ),
+                const SizedBox(height: 24),
+                if (user?.email == 'vinaykumar020406@gmail.com' || user?.email == 'pvinaykumar2006@gmail.com') ...[
+                  _buildAdminPanel(context, ref),
+                  const SizedBox(height: 20),
                 ],
-              ),
-            ],
-            const SizedBox(height: 48),
-            _buildSignOutButton(ref),
-            const SizedBox(height: 24),
-          ],
+                _buildSignOutButton(ref),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
-}
-
-  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: const Text(
-        'Student Profile',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.edit, color: AppColors.primary),
-          tooltip: 'Edit Profile',
-          onPressed: () => _showEditProfileModal(context, ref),
-        ),
-      ],
     );
   }
 
@@ -156,69 +128,82 @@ class ProfileScreen extends ConsumerWidget {
     final department = userData['department'] ?? 'CSE';
     final degree = userData['degree'] ?? 'B.Tech';
 
-    return Column(
-      children: [
-        Stack(
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.4),
-                  width: 3,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 16,
-                  ),
-                ],
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: photoUrl != null
-                  ? Image.network(photoUrl, fit: BoxFit.cover)
-                  : const Icon(
-                      Icons.person,
-                      size: 56,
-                      color: AppColors.primary,
-                    ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          displayName,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          email,
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          college,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildBadge('Semester $semester', AppColors.neonYellow),
-            const SizedBox(width: 8),
-            _buildBadge(degree, AppColors.primary),
-            const SizedBox(width: 8),
-            _buildBadge(department, AppColors.neonCyan),
-          ],
-        ),
-      ],
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const SizedBox(width: 32),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.neoYellow,
+                  border: Border.all(color: Colors.black, width: 2.5),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: photoUrl != null
+                    ? Image.network(photoUrl, fit: BoxFit.cover)
+                    : const Icon(
+                        Icons.person,
+                        size: 48,
+                        color: Colors.black,
+                      ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.black),
+                tooltip: 'Edit Profile',
+                onPressed: () => _showEditProfileModal(context, ref),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            displayName,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            email,
+            style: const TextStyle(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            college,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.black),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildBadge('Semester $semester', AppColors.neoYellow),
+              const SizedBox(width: 8),
+              _buildBadge(degree, AppColors.neoPink),
+              const SizedBox(width: 8),
+              _buildBadge(department, AppColors.neoCyan),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -226,16 +211,16 @@ class ProfileScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black, width: 1.5),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: color,
+          fontWeight: FontWeight.w900,
+          color: color == AppColors.neoPink ? Colors.white : Colors.black,
         ),
       ),
     );
@@ -251,15 +236,15 @@ class ProfileScreen extends ConsumerWidget {
         _buildStatCard(
           'Attendance',
           '${attendanceNotifier.getOverallPercentage().toStringAsFixed(1)}%',
-          AppColors.primary,
+          AppColors.neoPink,
         ),
         const SizedBox(width: 12),
-        _buildStatCard('CGPA', cgpa, AppColors.neonYellow),
+        _buildStatCard('CGPA', cgpa, AppColors.neoYellow),
         const SizedBox(width: 12),
         _buildStatCard(
           'Wallet',
           '₹${moneyState.totalBalance.toStringAsFixed(0)}',
-          AppColors.neonCyan,
+          AppColors.neoCyan,
         ),
       ],
     );
@@ -270,27 +255,34 @@ class ProfileScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.4),
+          color: color,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1E293B)),
+          border: Border.all(color: Colors.black, width: 2.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(3, 3),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: Column(
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
+                color: color == AppColors.neoPink ? Colors.white70 : Colors.black87,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               value,
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
+                fontWeight: FontWeight.w900,
+                color: color == AppColors.neoPink ? Colors.white : Colors.black,
               ),
             ),
           ],
@@ -311,18 +303,25 @@ class ProfileScreen extends ConsumerWidget {
           child: Text(
             title.toUpperCase(),
             style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
               letterSpacing: 1.2,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF1E293B)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(4, 4),
+                blurRadius: 0,
+              ),
+            ],
           ),
           child: Column(children: items),
         ),
@@ -340,21 +339,89 @@ class ProfileScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.neoYellow,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black, width: 1.5),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
+        child: Icon(icon, color: Colors.black, size: 20),
       ),
       title: Text(
         title,
         style: const TextStyle(
           fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black, size: 22),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildAdminPanel(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.neoOrange,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.admin_panel_settings, color: Colors.black, size: 22),
+              SizedBox(width: 8),
+              Text(
+                'SYSTEM MAINTENANCE & OTA',
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.black, width: 2),
+                ),
+              ),
+              onPressed: () => _showPublishOtaDialog(context, ref),
+              icon: const Icon(Icons.system_update_alt, color: AppColors.neoYellow, size: 18),
+              label: const Text('Push Real-Time OTA Live Update', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.neoPink,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.black, width: 2),
+                ),
+              ),
+              onPressed: () => _confirmWipe(context, ref),
+              icon: const Icon(Icons.cleaning_services, color: Colors.white, size: 18),
+              label: const Text('Wipe All Student Data', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -363,19 +430,18 @@ class ProfileScreen extends ConsumerWidget {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () => ref.read(authProvider.notifier).signOut(),
-        icon: const Icon(Icons.logout, size: 20),
+        icon: const Icon(Icons.logout, size: 20, color: Colors.white),
         label: const Text(
           'Sign Out',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.error.withValues(alpha: 0.1),
-          foregroundColor: AppColors.error,
+          backgroundColor: AppColors.neoPink,
           padding: const EdgeInsets.symmetric(vertical: 16),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppColors.error.withValues(alpha: 0.2)),
+            side: const BorderSide(color: Colors.black, width: 2.5),
           ),
         ),
       ),
@@ -394,7 +460,7 @@ class ProfileScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -418,21 +484,21 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         const Text(
                           'Edit Academic Profile',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
+                          icon: const Icon(Icons.close, color: Colors.black),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('COLLEGE / UNIVERSITY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('COLLEGE / UNIVERSITY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: collegeController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       decoration: _modalInputDecoration('e.g. IIITDM Kancheepuram'),
                     ),
                     const SizedBox(height: 12),
@@ -443,13 +509,13 @@ class ProfileScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('DEGREE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('DEGREE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 initialValue: ['B.Tech', 'M.Tech', 'Dual Degree', 'Ph.D'].contains(selectedDegree) ? selectedDegree : 'B.Tech',
                                 decoration: _modalInputDecoration('Degree'),
-                                dropdownColor: const Color(0xFF1E293B),
-                                style: const TextStyle(color: Colors.white),
+                                dropdownColor: Colors.white,
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 items: ['B.Tech', 'M.Tech', 'Dual Degree', 'Ph.D']
                                     .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                                     .toList(),
@@ -465,13 +531,13 @@ class ProfileScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('SEMESTER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                              const Text('SEMESTER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<int>(
                                 initialValue: selectedSem,
                                 decoration: _modalInputDecoration('Sem'),
-                                dropdownColor: const Color(0xFF1E293B),
-                                style: const TextStyle(color: Colors.white),
+                                dropdownColor: Colors.white,
+                                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 items: List.generate(10, (i) => DropdownMenuItem(value: i + 1, child: Text('Semester ${i + 1}'))),
                                 onChanged: (val) {
                                   if (val != null) setModalState(() => selectedSem = val);
@@ -484,13 +550,13 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    const Text('DEPARTMENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    const Text('DEPARTMENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: ['CSE', 'ECE', 'ME', 'CIVIL', 'EEE'].contains(selectedDept) ? selectedDept : 'CSE',
                       decoration: _modalInputDecoration('Dept'),
-                      dropdownColor: const Color(0xFF1E293B),
-                      style: const TextStyle(color: Colors.white),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       items: ['CSE', 'ECE', 'ME', 'CIVIL', 'EEE']
                           .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                           .toList(),
@@ -504,9 +570,12 @@ class ProfileScreen extends ConsumerWidget {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors.neoYellow,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Colors.black, width: 2),
+                          ),
                         ),
                         onPressed: () async {
                           await ref.read(onboardingProvider.notifier).updateUserData({
@@ -517,7 +586,7 @@ class ProfileScreen extends ConsumerWidget {
                           });
                           if (context.mounted) Navigator.pop(context);
                         },
-                        child: const Text('Save Profile Changes', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        child: const Text('Save Profile Changes ⚡', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
                       ),
                     ),
                   ],
@@ -533,13 +602,13 @@ class ProfileScreen extends ConsumerWidget {
   InputDecoration _modalInputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white38),
+      hintStyle: const TextStyle(color: Colors.black38),
       filled: true,
-      fillColor: const Color(0xFF1E293B),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF334155))),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF334155))),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black, width: 1.5)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black, width: 1.5)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black, width: 2.5)),
     );
   }
 
@@ -548,28 +617,28 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF1E293B))),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
         title: const Row(
           children: [
-            Icon(Icons.description, color: AppColors.primary),
+            Icon(Icons.description, color: Colors.black),
             SizedBox(width: 10),
-            Text('Academic Transcript', style: TextStyle(color: Colors.white, fontSize: 16)),
+            Text('Academic Transcript', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Current CGPA: $cgpa', style: const TextStyle(color: AppColors.neonYellow, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('Current CGPA: $cgpa', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),
-            const Text('Status: Verified Student Record', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            const Text('Status: Verified Student Record', style: TextStyle(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            const Text('An official digital transcript export with course codes and semester GPAs can be generated for university verification.', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const Text('Official digital transcript export with course codes and semester GPAs.', style: TextStyle(color: Colors.black87, fontSize: 13)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -579,28 +648,28 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF1E293B))),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
         title: const Row(
           children: [
-            Icon(Icons.school, color: AppColors.neonCyan),
+            Icon(Icons.school, color: Colors.black),
             SizedBox(width: 10),
-            Text('Degree Progress Audit', style: TextStyle(color: Colors.white, fontSize: 16)),
+            Text('Degree Progress Audit', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           ],
         ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Completed: 48 / 160 Total Credits', style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text('Completed: 48 / 160 Total Credits', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
             SizedBox(height: 12),
-            LinearProgressIndicator(value: 48 / 160, color: AppColors.neonCyan, backgroundColor: Color(0xFF1E293B)),
+            LinearProgressIndicator(value: 48 / 160, color: AppColors.neoYellow, backgroundColor: Color(0xFFE2E8F0)),
             SizedBox(height: 16),
-            Text('• Core Courses: 36 Credits\n• Electives: 8 Credits\n• Science & Humanities: 4 Credits', style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5)),
+            Text('• Core Courses: 36 Credits\n• Electives: 8 Credits\n• Science & Humanities: 4 Credits', style: TextStyle(color: Colors.black87, fontSize: 13, height: 1.5, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -611,28 +680,28 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF1E293B))),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
         title: const Row(
           children: [
-            Icon(Icons.security, color: AppColors.primary),
+            Icon(Icons.security, color: Colors.black),
             SizedBox(width: 10),
-            Text('Security & Account', style: TextStyle(color: Colors.white, fontSize: 16)),
+            Text('Security & Account', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Signed in as: ${user?.email ?? "Student"}', style: const TextStyle(color: Colors.white, fontSize: 13)),
+            Text('Signed in as: ${user?.email ?? "Student"}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13)),
             const SizedBox(height: 8),
-            Text('Authentication: Google Single Sign-On (SSO)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            const Text('Authentication: Google Single Sign-On (SSO)', style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Data Protection: Encrypted Local & Cloud Sync', style: const TextStyle(color: AppColors.success, fontSize: 12)),
+            const Text('Data Protection: Encrypted Local & Cloud Sync', style: TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -642,26 +711,26 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF1E293B))),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
         title: const Row(
           children: [
-            Icon(Icons.help_outline, color: AppColors.neonYellow),
+            Icon(Icons.help_outline, color: Colors.black),
             SizedBox(width: 10),
-            Text('Help & Support', style: TextStyle(color: Colors.white, fontSize: 16)),
+            Text('Help & Support', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           ],
         ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('One Click Student Support', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text('One Click Student Support', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
             SizedBox(height: 8),
-            Text('If you encounter any issues with timetable sync or mess menus, contact your campus administrator or support.', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            Text('If you encounter any issues with timetable sync or mess menus, contact your campus administrator.', style: TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -671,10 +740,11 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.black, width: 2.5)),
         title: const Text(
           'CRITICAL ACTION',
-          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.neoPink, fontWeight: FontWeight.w900),
         ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -682,27 +752,27 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Text(
               'This will PERMANENTLY delete all student user data from Firestore while preserving your Admin account.',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             Text(
               '• Attendance records\n• GPA history\n• Timetables\n• Finances\n• Notifications',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: Colors.black87, fontSize: 13, height: 1.4),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neoPink),
             onPressed: () async {
               Navigator.pop(context);
               _executeWipe(context, ref);
             },
-            child: const Text('Wipe User Data', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Wipe User Data', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
           ),
         ],
       ),
@@ -714,7 +784,7 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(color: AppColors.error),
+        child: CircularProgressIndicator(color: Colors.black),
       ),
     );
 
@@ -725,7 +795,6 @@ class ProfileScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('All student Firestore data wiped successfully.'),
-            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -735,7 +804,6 @@ class ProfileScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Wipe failed: $e'),
-            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -818,7 +886,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.neoYellow),
               onPressed: () async {
@@ -859,7 +927,7 @@ class ProfileScreen extends ConsumerWidget {
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(
         Icons.rocket_launch,
-        color: AppColors.primary,
+        color: Colors.black,
         size: 48,
       ),
       children: const [
@@ -877,21 +945,21 @@ class ProfileScreen extends ConsumerWidget {
           final notifier = ref.read(notificationSettingsProvider.notifier);
 
           return AlertDialog(
-            backgroundColor: AppColors.surface,
+            backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF1E293B)),
+              side: const BorderSide(color: Colors.black, width: 2.5),
             ),
             title: const Row(
               children: [
-                Icon(Icons.notifications_active, color: AppColors.primary, size: 24),
+                Icon(Icons.notifications_active, color: Colors.black, size: 24),
                 SizedBox(width: 12),
                 Text(
                   'Notification Settings',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: Colors.black,
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
@@ -903,9 +971,9 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: AppColors.neoYellow,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF1E293B)),
+                    border: Border.all(color: Colors.black, width: 1.5),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -917,8 +985,8 @@ class ProfileScreen extends ConsumerWidget {
                             Text(
                               'Timetable Reminders',
                               style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
                                 fontSize: 14,
                               ),
                             ),
@@ -926,8 +994,9 @@ class ProfileScreen extends ConsumerWidget {
                             Text(
                               'Receive offline class alerts',
                               style: TextStyle(
-                                color: AppColors.textSecondary,
+                                color: Colors.black87,
                                 fontSize: 12,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -938,7 +1007,8 @@ class ProfileScreen extends ConsumerWidget {
                         onChanged: (val) {
                           notifier.updateSettings(enabled: val);
                         },
-                        activeThumbColor: AppColors.primary,
+                        activeThumbColor: Colors.black,
+                        activeTrackColor: AppColors.neoLime,
                       ),
                     ],
                   ),
@@ -949,8 +1019,8 @@ class ProfileScreen extends ConsumerWidget {
                     'REMIND ME BEFORE CLASS',
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -968,32 +1038,34 @@ class ProfileScreen extends ConsumerWidget {
                             notifier.updateSettings(minutesBefore: mins);
                           }
                         },
-                        selectedColor: AppColors.primary,
-                        backgroundColor: const Color(0xFF0F172A),
+                        selectedColor: AppColors.neoPink,
+                        backgroundColor: Colors.white,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Colors.white : Colors.black,
+                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
-                          ),
+                          side: const BorderSide(color: Colors.black, width: 1.5),
                         ),
                       );
                     }).toList(),
                   ),
                 ],
                 const SizedBox(height: 16),
-                const Divider(color: Color(0xFF1E293B)),
+                const Divider(color: Colors.black),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     onPressed: () async {
                       await LocalNotificationsService.sendTestNotification();
@@ -1004,8 +1076,8 @@ class ProfileScreen extends ConsumerWidget {
                         );
                       }
                     },
-                    icon: const Icon(Icons.notifications_active, color: Colors.white, size: 18),
-                    label: const Text('Test System Notifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.notifications_active, color: AppColors.neoYellow, size: 18),
+                    label: const Text('Test System Notifications ⚡', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                   ),
                 ),
               ],
@@ -1016,8 +1088,8 @@ class ProfileScreen extends ConsumerWidget {
                 child: const Text(
                   'Done',
                   style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),

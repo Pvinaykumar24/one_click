@@ -8,25 +8,73 @@ class BudgetStatusBar extends ConsumerWidget {
 
   const BudgetStatusBar({super.key, required this.state});
 
+  void _showEditBudgetDialog(BuildContext context, WidgetRef ref, double currentBudget) {
+    final controller = TextEditingController(text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '5000');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.black, width: 2.5),
+        ),
+        title: const Text('Set Monthly Budget', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          decoration: const InputDecoration(
+            labelText: 'Budget Amount (₹)',
+            hintText: 'e.g. 5000',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neoYellow),
+            onPressed: () async {
+              final newBudget = double.tryParse(controller.text.trim()) ?? 0.0;
+              if (newBudget > 0) {
+                await ref.read(moneyManagerProvider.notifier).updateMonthlyBudget(newBudget);
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Save Budget ⚡', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final budget = state.monthlyBudget > 0 ? state.monthlyBudget : 1.0;
     final remaining = (budget - state.monthlySpend).clamp(0.0, budget);
     final ratio = (state.monthlySpend / budget).clamp(0.0, 1.0);
 
-    Color barColor = AppColors.primary;
+    Color barColor = AppColors.neoLime;
     if (ratio >= 1.0) {
-      barColor = AppColors.error;
+      barColor = AppColors.neoPink;
     } else if (ratio >= 0.8) {
-      barColor = const Color(0xFFF59E0B); // Amber warning
+      barColor = AppColors.neoYellow;
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1E293B)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -42,26 +90,27 @@ class BudgetStatusBar extends ConsumerWidget {
                       const Text(
                         'Budget Status',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => _showEditBudgetDialog(context, ref, state.monthlyBudget),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.neoYellow,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.black, width: 1.5),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.edit_outlined, size: 12, color: AppColors.primary),
+                              Icon(Icons.edit_outlined, size: 12, color: Colors.black),
                               SizedBox(width: 3),
-                              Text('Edit', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                              Text('Edit', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black)),
                             ],
                           ),
                         ),
@@ -69,106 +118,52 @@ class BudgetStatusBar extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Remaining Allowance',
-                    style: TextStyle(
+                  Text(
+                    '₹${remaining.toStringAsFixed(0)} remaining of ₹${budget.toStringAsFixed(0)}',
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '₹${remaining.toStringAsFixed(0)} ',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: barColor,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '/ ₹${state.monthlyBudget.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: barColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.black, width: 1.5),
+                ),
+                child: Text(
+                  '${(ratio * 100).toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: ratio >= 1.0 ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            height: 12,
-            decoration: BoxDecoration(
-              color: const Color(0xFF334155),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: state.monthlySpend > 0 ? ratio : 0.05,
-              child: Container(
-                decoration: BoxDecoration(
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              height: 12,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.black, width: 1.5),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: ratio,
+                child: Container(
                   color: barColor,
-                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditBudgetDialog(BuildContext context, WidgetRef ref, double currentBudget) {
-    final controller = TextEditingController(text: currentBudget.toStringAsFixed(0));
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Edit Monthly Budget', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Set your target monthly allowance to receive intelligent alerts when your spending reaches 80% or exceeds 100%.',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
-              decoration: const InputDecoration(
-                labelText: 'Monthly Allowance (₹)',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
-                prefixText: '₹ ',
-                prefixStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () {
-              final newBudget = double.tryParse(controller.text.trim()) ?? currentBudget;
-              if (newBudget > 0) {
-                ref.read(moneyManagerProvider.notifier).updateMonthlyBudget(newBudget);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
