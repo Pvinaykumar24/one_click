@@ -158,10 +158,14 @@ class AppUpdateNotifier extends StreamNotifier<AppUpdateState> {
       await _db
           .collection('app_config')
           .doc('latest')
-          .set(manifestMap, SetOptions(merge: true));
+          .set(manifestMap);
 
       debugPrint('🚀 [OTA LIVE UPDATE] Successfully published to Firestore!');
       return null; // Null means SUCCESS
+    } on FirebaseException catch (fe) {
+      final err = 'Firebase [${fe.code}]: ${fe.message}';
+      debugPrint('❌ [OTA LIVE UPDATE FIREBASE ERROR]: $err');
+      return err;
     } catch (e, stack) {
       final err = 'Error: $e';
       debugPrint('❌ [OTA LIVE UPDATE WRITE ERROR]: $err\n$stack');
