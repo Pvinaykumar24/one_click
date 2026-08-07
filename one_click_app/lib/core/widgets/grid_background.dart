@@ -5,30 +5,37 @@ import '../theme/app_colors.dart';
 class NeoGridPainter extends CustomPainter {
   final Color gridColor;
   final double gridSpacing;
+  final double offsetAnimation;
 
   NeoGridPainter({
-    this.gridColor = const Color(0x1F000000), // Subtle 12% opacity black grid lines
+    this.gridColor = const Color(0x2B000000), // Vibrant 17% black grid lines
     this.gridSpacing = 24.0,
+    this.offsetAnimation = 0.0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = gridColor
-      ..strokeWidth = 1.2
+      ..strokeWidth = 1.3
       ..style = PaintingStyle.stroke;
 
-    for (double x = 0; x < size.width; x += gridSpacing) {
+    final offsetX = (offsetAnimation * gridSpacing) % gridSpacing;
+    final offsetY = (offsetAnimation * gridSpacing) % gridSpacing;
+
+    for (double x = -gridSpacing + offsetX; x < size.width + gridSpacing; x += gridSpacing) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
-    for (double y = 0; y < size.height; y += gridSpacing) {
+    for (double y = -gridSpacing + offsetY; y < size.height + gridSpacing; y += gridSpacing) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant NeoGridPainter oldDelegate) =>
-      oldDelegate.gridColor != gridColor || oldDelegate.gridSpacing != gridSpacing;
+      oldDelegate.gridColor != gridColor ||
+      oldDelegate.gridSpacing != gridSpacing ||
+      oldDelegate.offsetAnimation != offsetAnimation;
 }
 
 class NeoMotionBackground extends StatefulWidget {
@@ -54,8 +61,8 @@ class _NeoMotionBackgroundState extends State<NeoMotionBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 6),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 8),
+    )..repeat();
   }
 
   @override
@@ -70,77 +77,88 @@ class _NeoMotionBackgroundState extends State<NeoMotionBackground>
       color: AppColors.background,
       child: Stack(
         children: [
-          // Grid Pattern
-          if (widget.showGrid)
-            Positioned.fill(
-              child: CustomPaint(
-                painter: NeoGridPainter(),
-              ),
-            ),
-
-          // Floating Animated Shapes
+          // Animated Grid & Motion Shapes
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
               final val = _controller.value;
-              final dy1 = math.sin(val * math.pi * 2) * 12.0;
-              final dy2 = math.cos(val * math.pi * 2) * 16.0;
+              final dy1 = math.sin(val * math.pi * 2) * 16.0;
+              final dy2 = math.cos(val * math.pi * 2) * 20.0;
 
               return Stack(
                 children: [
-                  // Floating Shape 1: Top Right Pink Star/Badge
+                  // Animated Moving Grid Pattern
+                  if (widget.showGrid)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: NeoGridPainter(
+                          offsetAnimation: val,
+                        ),
+                      ),
+                    ),
+
+                  // Floating Motion Shape 1: Top Right Pink Badge
                   Positioned(
-                    top: 60 + dy1,
-                    right: -20,
+                    top: 50 + dy1,
+                    right: -15,
                     child: Opacity(
-                      opacity: 0.25,
+                      opacity: 0.35,
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
                           color: AppColors.neoPink,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.black, width: 2.5),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  // Floating Shape 2: Mid Left Cyan Square
+                  // Floating Motion Shape 2: Mid Left Rotating Cyan Card
                   Positioned(
-                    top: 320 + dy2,
-                    left: -25,
+                    top: 300 + dy2,
+                    left: -20,
                     child: Transform.rotate(
-                      angle: val * 0.4,
+                      angle: val * math.pi * 2,
                       child: Opacity(
-                        opacity: 0.25,
+                        opacity: 0.35,
                         child: Container(
-                          width: 70,
-                          height: 70,
+                          width: 75,
+                          height: 75,
                           decoration: BoxDecoration(
                             color: AppColors.neoCyan,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(18),
                             border: Border.all(color: Colors.black, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
 
-                  // Floating Shape 3: Bottom Right Yellow Diamond
+                  // Floating Motion Shape 3: Bottom Right Yellow Diamond
                   Positioned(
-                    bottom: 120 - dy1,
-                    right: 30,
+                    bottom: 110 - dy1,
+                    right: 25,
                     child: Transform.rotate(
-                      angle: math.pi / 4,
+                      angle: math.pi / 4 + (val * 0.5),
                       child: Opacity(
-                        opacity: 0.3,
+                        opacity: 0.4,
                         child: Container(
-                          width: 50,
-                          height: 50,
+                          width: 55,
+                          height: 55,
                           decoration: BoxDecoration(
                             color: AppColors.neoYellow,
                             border: Border.all(color: Colors.black, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
+                            ],
                           ),
                         ),
                       ),

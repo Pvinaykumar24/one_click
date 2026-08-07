@@ -8,8 +8,9 @@ import '../widgets/attendance_health_widget.dart';
 import '../widgets/cgpa_preview_widget.dart';
 import '../widgets/upcoming_classes_list.dart';
 import '../widgets/academic_calendar_widget.dart';
-import '../core/theme/app_colors.dart';
 import '../services/timetable_service.dart';
+
+import '../core/widgets/grid_background.dart';
 
 class HomeDashboardScreen extends ConsumerWidget {
   const HomeDashboardScreen({super.key});
@@ -22,8 +23,9 @@ class HomeDashboardScreen extends ConsumerWidget {
     final timetableState = ref.watch(timetableProvider);
     final timetableNotifier = ref.read(timetableProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return NeoMotionBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
@@ -107,8 +109,9 @@ class HomeDashboardScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   String _getDayName(int weekday) {
     switch (weekday) {
