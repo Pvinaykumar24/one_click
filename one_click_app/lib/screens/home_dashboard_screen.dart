@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/dashboard_header.dart';
-import '../widgets/live_update_banner.dart';
+import '../widgets/codepush_banner.dart';
 import '../widgets/live_class_card.dart';
 import '../widgets/mess_menu_preview.dart';
 import '../widgets/attendance_health_widget.dart';
@@ -80,8 +80,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     
-                    // Real-Time Live Update & Announcement Banner
-                    const LiveUpdateBanner(),
+                    // Shorebird CodePush OTA Update Banner
+                    const CodePushBanner(),
                     
                     // Live class card
                     const LiveClassCard(),
