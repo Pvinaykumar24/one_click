@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_provider.dart';
 
 class NeoGridPainter extends CustomPainter {
   final Color gridColor;
@@ -8,7 +10,7 @@ class NeoGridPainter extends CustomPainter {
   final double offsetAnimation;
 
   NeoGridPainter({
-    this.gridColor = const Color(0x2B000000), // Vibrant 17% black grid lines
+    this.gridColor = const Color(0x2B000000), // Vibrant grid lines
     this.gridSpacing = 24.0,
     this.offsetAnimation = 0.0,
   });
@@ -38,7 +40,7 @@ class NeoGridPainter extends CustomPainter {
       oldDelegate.offsetAnimation != offsetAnimation;
 }
 
-class NeoMotionBackground extends StatefulWidget {
+class NeoMotionBackground extends ConsumerStatefulWidget {
   final Widget child;
   final bool showGrid;
 
@@ -49,10 +51,10 @@ class NeoMotionBackground extends StatefulWidget {
   });
 
   @override
-  State<NeoMotionBackground> createState() => _NeoMotionBackgroundState();
+  ConsumerState<NeoMotionBackground> createState() => _NeoMotionBackgroundState();
 }
 
-class _NeoMotionBackgroundState extends State<NeoMotionBackground>
+class _NeoMotionBackgroundState extends ConsumerState<NeoMotionBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -73,8 +75,11 @@ class _NeoMotionBackgroundState extends State<NeoMotionBackground>
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
     return Container(
-      color: AppColors.background,
+      color: AppColors.getCanvasBg(isDark),
       child: Stack(
         children: [
           // Animated Grid & Motion Shapes
@@ -92,6 +97,7 @@ class _NeoMotionBackgroundState extends State<NeoMotionBackground>
                     Positioned.fill(
                       child: CustomPaint(
                         painter: NeoGridPainter(
+                          gridColor: isDark ? const Color(0x33FFFFFF) : const Color(0x2B000000),
                           offsetAnimation: val,
                         ),
                       ),

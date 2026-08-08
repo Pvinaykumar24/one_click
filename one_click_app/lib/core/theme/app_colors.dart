@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Bright Electric Sun Yellow Neo-Brutalism Grid Canvas base
   static const Color background   = Color(0xFFFFF8E1); // Bright Electric Yellow Tint
+  static const Color darkBackground = Color(0xFF12141C); // Deep Electric Obsidian
   static const Color surface      = Color(0xFFFFFFFF); 
+  static const Color darkSurface  = Color(0xFF1E2433); 
   static const Color surfaceLight = Color(0xFFFFFDE7); 
 
   // Neo-Brutalism Electric Palette
@@ -40,6 +42,13 @@ class AppColors {
   static const Color border      = Color(0xFF000000); // Solid Black Outline
   static const Color borderLight = Color(0xFF000000); 
   static const Color shadow      = Color(0xFF000000); // Solid Hard Shadow
+
+  // Adaptive theme getters
+  static Color getCanvasBg(bool isDark) => isDark ? darkBackground : background;
+  static Color getCardBg(bool isDark) => isDark ? darkSurface : surface;
+  static Color getTextPrimary(bool isDark) => isDark ? Colors.white : textPrimary;
+  static Color getTextSecondary(bool isDark) => isDark ? const Color(0xFF94A3B8) : textSecondary;
+  static Color getBorder(bool isDark) => isDark ? Colors.black : border;
 
   AppColors._();
 }
